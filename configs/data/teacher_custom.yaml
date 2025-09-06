@@ -1,0 +1,6 @@
+defaults:
+  - custom_bespoke_stratos
+  - teacher
+  - _self_
+
+data_log_name: custom_bespoke_stratos_teacher_style_${system_prompt_style}_maskA${mask_teacher_answer}

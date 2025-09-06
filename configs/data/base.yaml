@@ -1,0 +1,9 @@
+data_log_name:
+dataset_id_or_path:
+# indicates the dataset kind for processing
+dataset_local_directory: ${dataset_id_or_path}
+
+make_dataset_fn:
+  dataset_id_or_path: ${dataset_id_or_path}
+  dataset_local_directory: ${dataset_local_directory}
+  model_name_or_path: ${model_name_or_path}

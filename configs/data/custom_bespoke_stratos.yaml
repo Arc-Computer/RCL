@@ -1,0 +1,8 @@
+defaults:
+  - bespoke_stratos
+  - _self_
+
+data_log_name: custom_stratos_style
+
+dataset_id_or_path: ${dataset_id_or_path}
+dataset_local_directory: ${dataset_id_or_path}

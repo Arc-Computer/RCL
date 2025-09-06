@@ -1,0 +1,46 @@
+reward_log_name: student_solution_kl_reg
+
+answer_log_prob_coeff: [5, 0.05]
+kl_penalty_reward_coeff: [5, 0.05]
+normalize_log_prob_fn: null
+clip_log_prob: 100000
+normalize_kl_fn: null
+clip_kl: 100000
+reduction_log_prob_fn: ["mean", "min"]
+reduction_kl_fn: ["mean", "max"]
+use_schulman_kl_estimation: false
+not_matched_penalty: -1.0
+unbias_teacher_log_probs: true
+unbias_student_log_probs_temp: 0.7
+include_teacher_think_entropy: true
+correct_generation_coeff: 0.0
+correct_generation_rollouts: 8
+student_generation_kwargs: {}
+student_generation_check_stategy: ground_truth
+formatting_sub_rewards: []
+evaluate_refined_solution: false
+
+teacher_reward:
+  _target_: trainers.TeacherKLBasedReward
+  student_model: null
+  teacher_model: null
+  tokenizer: null
+  answer_log_prob_coeff: ${answer_log_prob_coeff}
+  kl_penalty_reward_coeff: ${kl_penalty_reward_coeff}
+  normalize_log_prob_fn: ${normalize_log_prob_fn}
+  clip_log_prob: ${clip_log_prob}
+  normalize_kl_fn: ${normalize_kl_fn}
+  clip_kl: ${clip_kl}
+  reduction_log_prob_fn: ${reduction_log_prob_fn}
+  reduction_kl_fn: ${reduction_kl_fn}
+  use_schulman_kl_estimation: ${use_schulman_kl_estimation}
+  not_matched_penalty: ${not_matched_penalty}
+  unbias_teacher_log_probs: ${unbias_teacher_log_probs}
+  unbias_student_log_probs_temp: ${unbias_student_log_probs_temp}
+  include_teacher_think_entropy: ${include_teacher_think_entropy}
+  correct_generation_coeff: ${correct_generation_coeff}
+  correct_generation_rollouts: ${correct_generation_rollouts}
+  generation_kwargs: ${student_generation_kwargs}
+  generation_check_stategy: ${student_generation_check_stategy}
+  formatting_sub_rewards: ${formatting_sub_rewards}
+  evaluate_refined_solution: ${evaluate_refined_solution}

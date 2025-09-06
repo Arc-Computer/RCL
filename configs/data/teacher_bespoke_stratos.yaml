@@ -1,0 +1,8 @@
+defaults:
+  - bespoke_stratos
+  - teacher
+  - _self_
+
+data_log_name: bespoke_stratos_17k_teacher_style_${system_prompt_style}_maskA${mask_teacher_answer}
+
+dataset_id_or_path: bespokelabs/Bespoke-Stratos-17k

@@ -1,0 +1,17 @@
+system_prompt_style: stratos
+mask_teacher_answer: true
+return_student_prompt_info: true
+add_text_completions: false
+
+custom_start_of_response: 
+  _target_: custom_data.teacher_data.get_teacher_data_mask_delimiter
+  system_prompt_style: ${system_prompt_style}
+  mask_teacher_answer: ${mask_teacher_answer}
+  dataset_id_or_path: ${dataset_id_or_path}
+
+make_dataset_fn:
+  process_line_fn:
+    _target_: custom_data.teacher_data.get_process_line_fn
+    system_prompt_style: ${system_prompt_style}
+    return_student_prompt_info: ${return_student_prompt_info}
+    add_text_completions: ${add_text_completions}

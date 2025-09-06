@@ -1,0 +1,36 @@
+defaults:
+  - _self_
+  - model@_global_: qwen3bi
+  - data@_global_: teacher_bespoke_stratos
+  - trainer@_global_: base_sft
+  - run@_global_: default
+
+# saving:
+save_final_model: false
+save_strategy: "no"
+save_steps: 25
+push_to_hub: false
+tags:
+call_post_training:
+
+# logging:
+logging_strategy: steps
+logging_steps: 5
+report_to: "wandb"
+wandb_project: rl4lm
+wandb_group_name: ${data_log_name}/${model_log_name}
+wandb_run_name: ${trainer_log_name}
+
+# dirs:
+results_dir: results
+exp_name: ${now:%Y.%m.%d}${now:%H%M%S}
+output_dir: ${results_dir}/${wandb_project}/${wandb_group_name}/${wandb_run_name}/${exp_name}
+
+# in case output dir exists, resume_from will be ignored
+resume_from:
+
+seed: 42
+
+hydra:
+  run:
+    dir: ${output_dir}

@@ -1,0 +1,45 @@
+defaults:
+  - override /trainer@_global_: base_sft
+  - override /model@_global_: qwen7bi
+  - override /data@_global_: teacher_bespoke_stratos
+  - _self_
+
+bf16: true
+tf32: true
+num_train_epochs: 10
+
+save_strategy: epoch
+save_steps: 1
+do_eval: false
+
+eval_strategy: steps
+eval_steps: 100
+
+train_batch_size: 16
+per_device_train_batch_size: 1
+gradient_accumulation_steps: ???
+
+gradient_checkpointing: true
+gradient_checkpointing_kwargs:
+  use_reentrant: false
+
+learning_rate: 1.0e-05
+weight_decay: 1e-4
+adam_beta1: 0.9
+adam_beta2: 0.95
+adam_epsilon: 1e-8
+max_grad_norm: 1.0
+
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+
+logging_steps: 1
+logging_strategy: steps
+packing: false
+max_seq_length: 16384
+per_device_eval_batch_size: 4
+
+wandb_project: rl4lm_sft
+wandb_group_name: teacher_sft
+wandb_run_name: teacher_${trainer_log_name}_${max_seq_length}ctx
+output_dir: ${results_dir}/pre_rl_model

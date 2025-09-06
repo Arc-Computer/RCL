@@ -1,0 +1,25 @@
+defaults:
+  - grpo
+  - reward@_global_: teacher_logprob_kl
+  - _self_
+
+trainer_log_name: teacher_grpo_rw_${reward_log_name}
+
+reward_fns:
+  _target_: hydra_utils.wrap_as_list
+  teacher_reward: ${teacher_reward}
+
+logging_prob: 0.1
+student_model: null
+use_reference_teacher_model: false
+student_model_init_kwargs: null
+completion_only_training: false
+disable_student_offloading: false
+
+trainer:
+  _target_: trainers.TeacherGRPOTrainer
+  student_model: ${student_model}
+  use_reference_teacher_model: ${use_reference_teacher_model}
+  student_model_init_kwargs: ${student_model_init_kwargs}
+  logging_prob: ${logging_prob}
+  disable_student_offloading: ${disable_student_offloading}
