@@ -11,7 +11,7 @@ def get_arc_atlas_rl_dataset(
     eval_split_ratio: float = 0.1,
 ) -> Dict[str, Any]:
     
-    dataset = load_dataset(dataset_id_or_path, split=dataset_split)
+    dataset = load_dataset(dataset_id_or_path, data_files="training/rl.jsonl", split="train")
     
     if dataset_max_samples is not None:
         dataset = dataset.select(range(min(dataset_max_samples, len(dataset))))
