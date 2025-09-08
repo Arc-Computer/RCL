@@ -1,6 +1,6 @@
 defaults:
   - grpo
-  - reward@_global_: teacher_logprob_kl
+  - reward@_global_: adaptive_teaching
   - _self_
 
 trainer_log_name: teacher_grpo_rw_${reward_log_name}
@@ -15,6 +15,12 @@ use_reference_teacher_model: false
 student_model_init_kwargs: null
 completion_only_training: false
 disable_student_offloading: false
+
+max_probe_tokens: ${max_probe_tokens}
+student_diagnostic_template: ${student_diagnostic_template}
+teacher_adaptive_template: ${teacher_adaptive_template}
+student_with_teaching_template: ${student_with_teaching_template}
+student_baseline_template: ${student_baseline_template}
 
 trainer:
   _target_: trainers.TeacherGRPOTrainer

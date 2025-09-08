@@ -368,17 +368,6 @@ class TeacherReward(abc.ABC):
         self,
         prompts,
         completions,
-        student_system_prompts,
-        start_think_teacher_tags,
-        end_think_teacher_tags,
-        start_think_student_tags,
-        end_think_student_tags,
-        start_solution_tags,
-        end_solution_tags,
-        think_prefixes,
-        think_solution_delimiters,
-        questions,
-        solutions,
         **kwargs,
     ):
         raise NotImplementedError

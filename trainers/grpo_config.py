@@ -326,3 +326,28 @@ class GRPOConfig(TrainingArguments):
         metadata={"help": "Number of actual epochs we want to do training for. Specifying here to avoid"
                   " a bug in huggingface's GRPO training with multiple epochs."},
     )
+    
+    max_probe_tokens: Optional[int] = field(
+        default=50,
+        metadata={"help": "Maximum number of tokens for student diagnostic probing."},
+    )
+    
+    student_diagnostic_template: Optional[str] = field(
+        default=None,
+        metadata={"help": "Template for generating student diagnostic probes."},
+    )
+    
+    teacher_adaptive_template: Optional[str] = field(
+        default=None,
+        metadata={"help": "Template for generating teacher adaptive teaching."},
+    )
+    
+    student_with_teaching_template: Optional[str] = field(
+        default=None,
+        metadata={"help": "Template for student solution with teaching."},
+    )
+    
+    student_baseline_template: Optional[str] = field(
+        default=None,
+        metadata={"help": "Template for student baseline solution."},
+    )
