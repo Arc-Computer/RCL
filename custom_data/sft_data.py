@@ -1,8 +1,10 @@
-from datasets import load_dataset, concatenate_datasets
+from datasets import load_dataset, concatenate_datasets, Dataset
+from huggingface_hub import hf_hub_download
+import json
 from .utils import make_masked_sft_collator
 from .reasoning_datasets_info import (
     DATA_CONFIGS, wrap_string_between_tag, grab_text_between_tag, get_tags,
-    ReasoningData)
+    ReasoningData, ADAPTIVE_TEACHING_SYSTEM_PROMPT)
 
 
 def add_indices(ds):
@@ -54,13 +56,52 @@ def load_formatted_sft_dataset(
         **dataset_loading_kwargs,
 ):
 
-    if dataset_local_directory is None:
-        dataset_local_directory = dataset_id_or_path
-    dataset = load_dataset(dataset_local_directory, **dataset_loading_kwargs)
-    train_dataset = dataset[train_split]
+    if dataset_id_or_path == "Arc-Intelligence/Arc-ATLAS-Teach-v0":
+        sft_path = hf_hub_download(
+            repo_id="Arc-Intelligence/Arc-ATLAS-Teach-v0",
+            filename="training/sft.jsonl",
+            repo_type="dataset"
+        )
+        
+        with open(sft_path, 'r') as f:
+            sft_data = [json.loads(line) for line in f]
+        
+        def process_arc_atlas_line(item, tokenizer):
+            messages = [
+                {
+                    "role": "system",
+                    "content": ADAPTIVE_TEACHING_SYSTEM_PROMPT,
+                },
+                {
+                    "role": "user",
+                    "content": item["prompt"],
+                },
+                {
+                    "role": "assistant",
+                    "content": item["completion"],
+                }
+            ]
+            line_text = tokenizer.apply_chat_template(
+                messages, tokenize=False, continue_final_message=False)
+            return {"text": line_text}
+        
+        processed_data = [process_arc_atlas_line(item, tokenizer) for item in sft_data]
+        train_dataset = Dataset.from_list(processed_data)
+        val_dataset = None
+    else:
+        if dataset_local_directory is None:
+            dataset_local_directory = dataset_id_or_path
+        dataset = load_dataset(dataset_local_directory, **dataset_loading_kwargs)
+        train_dataset = dataset[train_split]
+        if val_split is not None:
+            val_dataset = dataset[val_split]
+        else:
+            val_dataset = None
+    
     if add_dataset_indices:
         train_dataset = add_indices(train_dataset)
-    if process_line_fn is not None:
+    
+    if dataset_id_or_path != "Arc-Intelligence/Arc-ATLAS-Teach-v0" and process_line_fn is not None:
         if isinstance(process_line_fn, (list, tuple)):
             processed_train_datasets = []
             for fn in process_line_fn:
@@ -73,24 +114,22 @@ def load_formatted_sft_dataset(
             print('not loading from cache')
             train_dataset = train_dataset.map(
                 lambda x: process_line_fn(x,  tokenizer))
-    if val_split is None:
-        val_dataset = None
-    else:
-        val_dataset = dataset[val_split]
-        if add_dataset_indices:
-            val_dataset = add_indices(val_dataset)
-        if process_line_fn is not None:
-            if isinstance(process_line_fn, (list, tuple)):
-                processed_val_datasets = []
-                for fn in process_line_fn:
-                    processed = val_dataset.map(
-                        lambda x, fn=fn: fn(x, tokenizer))
-                    processed_val_datasets.append(processed)
-                val_dataset = concatenate_datasets(
-                    processed_val_datasets)
-            else:
-                val_dataset = val_dataset.map(
-                    lambda x: process_line_fn(x,  tokenizer))
+        
+        if val_dataset is not None:
+            if add_dataset_indices:
+                val_dataset = add_indices(val_dataset)
+            if process_line_fn is not None:
+                if isinstance(process_line_fn, (list, tuple)):
+                    processed_val_datasets = []
+                    for fn in process_line_fn:
+                        processed = val_dataset.map(
+                            lambda x, fn=fn: fn(x, tokenizer))
+                        processed_val_datasets.append(processed)
+                    val_dataset = concatenate_datasets(
+                        processed_val_datasets)
+                else:
+                    val_dataset = val_dataset.map(
+                        lambda x: process_line_fn(x,  tokenizer))
     if keep_columns is not None:
         train_dataset = train_dataset.remove_columns(
             [col for col in train_dataset.column_names

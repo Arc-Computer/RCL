@@ -1,7 +1,7 @@
 defaults:
   - override /trainer@_global_: base_sft
-  - override /model@_global_: qwen7bi
-  - override /data@_global_: teacher_bespoke_stratos
+  - override /model@_global_: qwen3_8b
+  - override /data@_global_: arc_atlas_sft
   - _self_
 
 bf16: true

@@ -1,7 +1,7 @@
 defaults:
   - _self_
-  - model@_global_: qwen3bi
-  - data@_global_: teacher_bespoke_stratos
+  - model@_global_: qwen3_8b
+  - data@_global_: arc_atlas_sft
   - trainer@_global_: base_sft
   - run@_global_: default
 
