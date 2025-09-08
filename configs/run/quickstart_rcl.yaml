@@ -1,0 +1,77 @@
+defaults:
+  - override /model@_global_: qwen3_8b
+  - override /data@_global_: arc_atlas_rl
+  - override /trainer@_global_: teacher_grpo
+  - _self_
+
+# Minimal RL configuration for 5-minute quickstart validation
+# Optimized for speed over quality - DO NOT use for production
+
+model_name_or_path: results/quickstart_sft
+
+bf16: true
+
+# Minimal training - just 4 steps to validate
+max_steps: 4
+num_train_epochs: 1.0
+
+# No saving for quickstart
+save_strategy: "no"
+save_final_model: false
+do_eval: false
+eval_strategy: "no"
+
+# Minimal logging
+logging_steps: 2
+logging_strategy: steps
+
+# Tiny batches for speed
+train_batch_size: 4
+per_device_train_batch_size: 1
+generation_aggregation_steps: 2
+
+# Minimal generations for validation
+num_generations: 2
+temperature: 0.7
+unbias_log_probabilities: true
+
+# Standard GRPO parameters
+learning_rate: 0.000001
+beta: 0.04
+
+# Skip reference model sync for speed
+sync_ref_model: false
+
+# Use small student for speed
+student_model: "Qwen/Qwen2.5-0.5B-Instruct"
+student_model_init_kwargs: null
+
+# Memory optimization
+offload_untrained_models: true
+
+# Reduced context for speed
+max_prompt_length: 2048
+max_completion_length: 512
+
+# Skip completion saving
+save_completions_probability: 0.0
+
+# Simple scheduler
+lr_scheduler_type: "constant"
+lr_scheduler_kwargs: ~
+
+# Disable external logging
+report_to: null
+wandb_project: null
+wandb_run_name: null
+
+# Quick output directory
+output_dir: ${results_dir}/quickstart_rcl
+
+# vLLM configuration for quickstart
+vllm_port: 8765
+use_vllm: false
+use_vllm_server: true
+vllm_server_timeout: 60.0
+vllm_host:
+num_vllm_clients:
