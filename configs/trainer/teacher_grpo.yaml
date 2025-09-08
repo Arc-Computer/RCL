@@ -17,8 +17,6 @@ completion_only_training: false
 disable_student_offloading: false
 
 trainer_args:
-  _target_: trainers.GRPOConfig
-  _partial_: true
   max_probe_tokens: ${max_probe_tokens}
   student_diagnostic_template: ${student_diagnostic_template}
   teacher_adaptive_template: ${teacher_adaptive_template}
