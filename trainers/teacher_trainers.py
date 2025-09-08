@@ -258,7 +258,13 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
             prompts_text, return_tensors="pt", padding=True, 
             padding_side="left", add_special_tokens=False
         )
-        prompt_inputs = {k: v.to(self.accelerator.device) for k, v in prompt_inputs.items()}
+        
+        if hasattr(model, 'hf_device_map'):
+            device = list(model.hf_device_map.values())[0]
+        else:
+            device = next(model.parameters()).device
+        
+        prompt_inputs = {k: v.to(device) for k, v in prompt_inputs.items()}
         prompt_ids, prompt_mask = prompt_inputs["input_ids"], prompt_inputs["attention_mask"]
         
         if self.max_prompt_length is not None:
