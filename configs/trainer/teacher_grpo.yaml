@@ -16,11 +16,14 @@ student_model_init_kwargs: null
 completion_only_training: false
 disable_student_offloading: false
 
-max_probe_tokens: ${max_probe_tokens}
-student_diagnostic_template: ${student_diagnostic_template}
-teacher_adaptive_template: ${teacher_adaptive_template}
-student_with_teaching_template: ${student_with_teaching_template}
-student_baseline_template: ${student_baseline_template}
+trainer_args:
+  _target_: trainers.GRPOConfig
+  _partial_: true
+  max_probe_tokens: ${max_probe_tokens}
+  student_diagnostic_template: ${student_diagnostic_template}
+  teacher_adaptive_template: ${teacher_adaptive_template}
+  student_with_teaching_template: ${student_with_teaching_template}
+  student_baseline_template: ${student_baseline_template}
 
 trainer:
   _target_: trainers.TeacherGRPOTrainer
