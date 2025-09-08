@@ -328,7 +328,7 @@ class GRPOConfig(TrainingArguments):
     )
     
     max_probe_tokens: Optional[int] = field(
-        default=50,
+        default=500,
         metadata={"help": "Maximum number of tokens for student diagnostic probing."},
     )
     

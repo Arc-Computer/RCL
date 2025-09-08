@@ -75,7 +75,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
             logging_prob=logging_prob,
         )
         
-        self.max_probe_tokens = getattr(self.args, 'max_probe_tokens', 50)
+        self.max_probe_tokens = getattr(self.args, 'max_probe_tokens', 500)
         self.student_diagnostic_template = getattr(self.args, 'student_diagnostic_template',
                                                    "Question: {question}\n\nBriefly outline your approach:")
         self.teacher_adaptive_template = getattr(self.args, 'teacher_adaptive_template',
@@ -130,6 +130,8 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         student_completions_text = self.processing_class.batch_decode(
             student_completion_ids, skip_special_tokens=True)
         
+        student_solutions = self._extract_solutions_from_responses(student_completions_text)
+        
         completions = teacher_completions_text
         if is_conversational(inputs[0]):
             completions = []
@@ -168,7 +170,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                                      for example in inputs] for key in keys}
                 
                 reward_kwargs['baseline_solutions'] = baseline_completions_text
-                reward_kwargs['solutions'] = student_completions_text
+                reward_kwargs['solutions'] = student_solutions
                 
                 output_reward_func = reward_func(
                     prompts=prompts, completions=completions, **reward_kwargs)
@@ -203,6 +205,17 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         
         return prompts_text, teacher_completion_ids, advantages
     
+    def _extract_solutions_from_responses(self, responses):
+        import re
+        solutions = []
+        for response in responses:
+            match = re.search(r'<solution>(.*?)</solution>', response, re.DOTALL)
+            if match:
+                solutions.append(match.group(1).strip())
+            else:
+                solutions.append("")
+        return solutions
+    
     def _generate_baseline_solutions(self, prompts_text):
         self._print_debugging_logs('Generating standalone student solutions...')
         
@@ -219,7 +232,9 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         completions_text = self.processing_class.batch_decode(
             completion_ids, skip_special_tokens=True)
         
-        return completions_text
+        solutions = self._extract_solutions_from_responses(completions_text)
+        
+        return solutions
     
     def _generate_student_approaches(self, prompts_text):
         probe_prompts = []

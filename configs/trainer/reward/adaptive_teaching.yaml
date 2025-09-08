@@ -2,7 +2,7 @@ reward_log_name: adaptive_teaching
 
 degradation_penalty_multiplier: 2.0
 efficiency_weight: 1.0
-max_probe_tokens: 50
+max_probe_tokens: 500
 
 student_diagnostic_template: |
   Question: {question}
@@ -22,11 +22,13 @@ teacher_adaptive_template: |
   The student's initial approach:
   {approach}
   
+  The student must provide their final answer within <solution></solution> tags.
   Based on the student's approach, provide adaptive teaching that:
   1. Identifies any gaps or misconceptions
   2. Provides targeted hints or explanations
   3. Guides them toward the correct solution method
-  4. Is concise and focused on what they specifically need
+  4. Reminds them to format their answer properly with <solution></solution> tags
+  5. Is concise and focused on what they specifically need
   
   Your adaptive teaching:
 
@@ -36,12 +38,16 @@ student_with_teaching_template: |
   A teacher has provided the following guidance:
   {teaching}
   
-  Now solve the problem step by step, applying the teacher's guidance:
+  Now solve the problem step by step, applying the teacher's guidance.
+  
+  Provide your final answer within <solution></solution> tags.
 
 student_baseline_template: |
   Question: {question}
   
-  Solve this problem step by step:
+  Solve this problem step by step.
+  
+  Provide your final answer within <solution></solution> tags.
 
 teacher_reward:
   _target_: trainers.AdaptiveTeachingReward

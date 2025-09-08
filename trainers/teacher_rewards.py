@@ -148,17 +148,20 @@ class AdaptiveTeachingReward(TeacherReward):
     @torch.no_grad()
     def evaluate_student_performance(self, question, solution, ground_truth):
         if not ground_truth:
-            return None
+            return 0.0
         
-        solution_clean = solution.strip().lower()
-        ground_truth_clean = ground_truth.strip().lower()
+        solution_clean = solution.strip()
+        ground_truth_clean = ground_truth.strip()
         
         if solution_clean == ground_truth_clean:
             return 1.0
-        elif solution_clean in ground_truth_clean or ground_truth_clean in solution_clean:
-            return 0.5
-        else:
-            return 0.0
+        
+        solution_lower = solution_clean.lower()
+        ground_truth_lower = ground_truth_clean.lower()
+        if solution_lower == ground_truth_lower:
+            return 1.0
+        
+        return 0.0
     
     def __call__(
         self,
@@ -175,12 +178,12 @@ class AdaptiveTeachingReward(TeacherReward):
         for i, (question, teacher_completion, solution) in enumerate(
             zip(questions, completions, solutions)
         ):
-            ground_truth = ground_truths[i] if i < len(ground_truths) else None
+            ground_truth = ground_truths[i] if i < len(ground_truths) else ""
+            baseline_solution = baseline_solutions[i] if i < len(baseline_solutions) else ""
             
             if not ground_truth:
+                rewards.append(0.0)
                 continue
-            
-            baseline_solution = baseline_solutions[i]
             
             performance_with_teaching = self.evaluate_student_performance(
                 question, solution, ground_truth
