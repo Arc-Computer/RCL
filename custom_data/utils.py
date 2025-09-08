@@ -15,6 +15,9 @@ def get_special_token_values(tokenizer, model_name):
     elif model_type == 'qwen2':
         instruction_template = "<|im_start|>user"
         response_template = "<|im_start|>assistant\n"
+    elif model_type == 'qwen3':
+        instruction_template = "<|im_start|>user"
+        response_template = "<|im_start|>assistant\n"
     else:
         raise NotImplementedError
 
