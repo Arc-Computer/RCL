@@ -67,6 +67,11 @@ def load_formatted_sft_dataset(
             sft_data = [json.loads(line) for line in f]
         
         def process_arc_atlas_line(item, tokenizer):
+            assistant_content = (
+                f"Student Approach: {item['student_approach']}\n\n"
+                f"Teacher Diagnosis: {item['teacher_diagnosis']}\n\n"
+                f"Teacher Teaching: {item['teacher_teaching']}"
+            )
             messages = [
                 {
                     "role": "system",
@@ -74,11 +79,11 @@ def load_formatted_sft_dataset(
                 },
                 {
                     "role": "user",
-                    "content": item["prompt"],
+                    "content": item["problem_text"],
                 },
                 {
                     "role": "assistant",
-                    "content": item["completion"],
+                    "content": assistant_content,
                 }
             ]
             line_text = tokenizer.apply_chat_template(
