@@ -1,6 +1,6 @@
 defaults:
-  - override /model@_global_: qwen7bi
-  - override /data@_global_: teacher_bespoke_stratos
+  - override /model@_global_: qwen3_8b
+  - override /data@_global_: arc_atlas_rl
   - override /trainer@_global_: teacher_grpo
   - _self_
 
@@ -38,7 +38,7 @@ sync_ref_model: true
 ref_model_mixup_alpha: 0.9
 ref_model_sync_steps: 32
 
-student_model: "bespokelabs/Bespoke-Stratos-7B"
+student_model: "Qwen/Qwen3-4B"
 student_model_init_kwargs: null
 
 offload_untrained_models: true
@@ -46,18 +46,6 @@ offload_untrained_models: true
 max_prompt_length: 16384
 max_completion_length: 16384
 
-answer_log_prob_coeff: [1, 0.01]
-kl_penalty_reward_coeff: [3, 0.03]
-normalize_log_prob_fn: null
-clip_log_prob: 100000
-normalize_kl_fn: null
-clip_kl: 100000
-reduction_log_prob_fn: ["mean", "min"]
-reduction_kl_fn: ["mean", "max"]
-use_schulman_kl_estimation: false
-not_matched_penalty: -1.0
-unbias_teacher_log_probs: true
-unbias_student_log_probs_temp: 0.7
 
 save_completions_probability: 0.1
 
