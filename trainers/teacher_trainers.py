@@ -1,6 +1,7 @@
 import os
 import abc
 import gc
+import copy
 import torch
 import accelerate
 from torch import nn
@@ -273,7 +274,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         
         generation_config = self.generation_config
         if max_tokens is not None:
-            generation_config = self.generation_config.copy()
+            generation_config = copy.deepcopy(self.generation_config)
             generation_config.max_new_tokens = max_tokens
         
         with torch.inference_mode():

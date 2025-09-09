@@ -4,7 +4,7 @@ defaults:
   - override /trainer@_global_: teacher_grpo
   - _self_
 
-model_name_or_path: results/pre_rl_model
+model_name_or_path: Arc-Intelligence/ATLAS-Teach-8B-Instruct
 
 bf16: true
 
@@ -23,11 +23,11 @@ eval_steps: 4
 logging_steps: 1
 logging_strategy: steps
 
-train_batch_size: 1024
+train_batch_size: 256
 per_device_train_batch_size: 1
-generation_aggregation_steps: 256
+generation_aggregation_steps: 32
 
-num_generations: 64
+num_generations: 24
 temperature: 0.7
 unbias_log_probabilities: true
 
