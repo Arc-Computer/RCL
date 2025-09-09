@@ -193,13 +193,25 @@ class AdaptiveTeachingReward(TeacherReward):
                 question, baseline_solution, ground_truth
             )
             
-            teaching_content = teacher_completion
+            import re
+            teaching_match = re.search(r'<teaching>(.*?)</teaching>', teacher_completion, re.DOTALL)
+            if teaching_match:
+                teaching_content = teaching_match.group(1).strip()
+            else:
+                teaching_content = teacher_completion
+            
             teaching_length = len(self.tokenizer.encode(teaching_content))
             
             performance_delta = performance_with_teaching - performance_without_teaching
             
             if performance_delta < 0:
                 reward = -self.degradation_penalty_multiplier * abs(performance_delta)
+            elif performance_delta == 0:
+                if performance_with_teaching == 1.0:
+                    efficiency_bonus = 100.0 / (100.0 + teaching_length)
+                    reward = 0.5 * (1.0 + self.efficiency_weight * efficiency_bonus)
+                else:
+                    reward = 0.0
             else:
                 efficiency_bonus = 100.0 / (100.0 + teaching_length)
                 reward = performance_delta * (1.0 + self.efficiency_weight * efficiency_bonus)

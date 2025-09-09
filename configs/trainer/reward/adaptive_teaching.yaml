@@ -15,22 +15,26 @@ student_diagnostic_template: |
   Your initial approach (be concise):
 
 teacher_adaptive_template: |
-  You are an adaptive teaching assistant. Your role is to help the student solve problems by providing targeted guidance based on their current understanding.
-  
   Question: {question}
   
-  The student's initial approach:
-  {approach}
+  Student's approach: {approach}
   
-  The student must provide their final answer within <solution></solution> tags.
-  Based on the student's approach, provide adaptive teaching that:
-  1. Identifies any gaps or misconceptions
-  2. Provides targeted hints or explanations
-  3. Guides them toward the correct solution method
-  4. Reminds them to format their answer properly with <solution></solution> tags
-  5. Is concise and focused on what they specifically need
+  First, think about the student's approach (use <thinking> tags for your internal analysis).
+  Then provide your teaching guidance (use <teaching> tags for what you'll tell the student).
   
-  Your adaptive teaching:
+  <thinking>
+  [Analyze the student's approach here - is it correct? What misconceptions might they have? What's the next step they need?]
+  </thinking>
+  
+  <teaching>
+  [Only your guidance to the student goes here. Be concise for correct approaches, more detailed for wrong ones. Remind student to provide the final answer within <solution></solution> tags.]
+  </teaching>
+  
+  Rules:
+  - Keep <thinking> and <teaching> separate
+  - NEVER solve the problem or give the answer in <teaching>
+  - <teaching> should only contain guidance, not your thought process
+  - Focus on guiding the student's next step
 
 student_with_teaching_template: |
   Question: {question}

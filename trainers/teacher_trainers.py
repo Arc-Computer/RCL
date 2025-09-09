@@ -105,9 +105,16 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         
         self._print_debugging_logs('Generating baseline solutions...')
         baseline_completions_text = self._generate_baseline_solutions(prompts_text)
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
+        self.accelerator.wait_for_everyone()
         
         self._print_debugging_logs('Generating student approaches...')
         student_approaches = self._generate_student_approaches(prompts_text)
+        gc.collect()
+        torch.cuda.empty_cache()
+        self.accelerator.wait_for_everyone()
         
         self._print_debugging_logs('Generating teacher adaptive teaching...')
         teacher_prompts = []
@@ -124,12 +131,24 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         
         teacher_completions_text = self.processing_class.batch_decode(
             teacher_completion_ids, skip_special_tokens=True)
+        gc.collect()
+        torch.cuda.empty_cache()
+        self.accelerator.wait_for_everyone()
         
         self._print_debugging_logs('Generating student solutions with teaching...')
         student_prompts_with_teaching = []
-        for prompt, teaching in zip(prompts_text, teacher_completions_text):
+        teaching_only_text = []
+        for prompt, full_teaching in zip(prompts_text, teacher_completions_text):
+            import re
+            teaching_match = re.search(r'<teaching>(.*?)</teaching>', full_teaching, re.DOTALL)
+            if teaching_match:
+                teaching_content = teaching_match.group(1).strip()
+            else:
+                teaching_content = full_teaching.strip()
+            
+            teaching_only_text.append(teaching_content)
             student_prompt = self.student_with_teaching_template.format(
-                question=prompt, teaching=teaching
+                question=prompt, teaching=teaching_content
             )
             student_prompts_with_teaching.append(student_prompt)
         
@@ -140,6 +159,9 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         
         student_completions_text = self.processing_class.batch_decode(
             student_completion_ids, skip_special_tokens=True)
+        gc.collect()
+        torch.cuda.empty_cache()
+        self.accelerator.wait_for_everyone()
         
         student_solutions = self._extract_solutions_from_responses(student_completions_text)
         baseline_solutions = self._extract_solutions_from_responses(baseline_completions_text)
@@ -190,37 +212,46 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                 rewards_per_func[:, i] = torch.tensor(
                     output_reward_func, dtype=torch.float32, device=device)
                 
-                if self.accelerator.is_main_process and self.state.global_step % 10 == 0:
-                    for j, (reward_val, prompt, teaching, student_sol, baseline_sol, gt) in enumerate(
-                        zip(output_reward_func[:3], prompts_text[:3], completions[:3], 
-                            student_solutions[:3], baseline_solutions[:3], 
-                            reward_kwargs['ground_truths'][:3])
+                if self.accelerator.is_main_process:
+                    for j, (reward_val, prompt, full_teaching, student_sol, baseline_sol, gt, teaching_only) in enumerate(
+                        zip(output_reward_func, prompts_text, completions, 
+                            student_solutions, baseline_solutions, 
+                            reward_kwargs['ground_truths'], teaching_only_text)
                     ):
-                        print(f"\n[REWARD CHECK] Sample {j}:")
-                        print(f"  Ground Truth: {gt}")
-                        print(f"  Baseline Solution: {baseline_sol}")
-                        print(f"  Student Solution: {student_sol}")
-                        print(f"  Reward: {reward_val}")
+                        if j < 3:  # Only print first 3 to avoid log flooding
+                            print(f"\n[REWARD CHECK] Sample {j}:")
+                            print(f"  Ground Truth: {gt}")
+                            print(f"  Baseline Solution: {baseline_sol}")
+                            print(f"  Student Solution: {student_sol}")
+                            print(f"  Reward: {reward_val}")
                         
                         if reward_val >= 1.0:
                             import os
                             import json
+                            import time
                             success_dir = os.path.join(self.args.output_dir, "successful_teaching")
                             os.makedirs(success_dir, exist_ok=True)
+                            timestamp = int(time.time() * 1000000)
                             
                             success_example = {
                                 "step": self.state.global_step,
+                                "timestamp": timestamp,
+                                "sample_index": j,
                                 "prompt": prompt,
-                                "teaching": teaching if isinstance(teaching, str) else teaching[0]["content"] if teaching else "",
+                                "student_approach": student_approaches[j] if j < len(student_approaches) else "",
+                                "teaching_content": teaching_only,
+                                "full_teacher_response": full_teaching,
                                 "student_solution": student_sol,
                                 "baseline_solution": baseline_sol,
                                 "ground_truth": gt,
-                                "reward": float(reward_val)
+                                "reward": float(reward_val),
+                                "student_full_response": student_completions_text[j] if j < len(student_completions_text) else "",
+                                "baseline_full_response": baseline_completions_text[j] if j < len(baseline_completions_text) else ""
                             }
                             
-                            filename = f"{success_dir}/step_{self.state.global_step}_sample_{j}.json"
+                            filename = f"{success_dir}/step_{self.state.global_step:06d}_sample_{j}_{timestamp}.json"
                             with open(filename, 'w') as f:
-                                json.dump(success_example, f, indent=2)
+                                json.dump(success_example, f, indent=2, ensure_ascii=False)
                             print(f"  [SAVED] High-reward teaching saved to {filename}")
         
         self._print_debugging_logs('gathering rewards...')
@@ -316,9 +347,18 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         import re
         solutions = []
         for response in responses:
-            match = re.search(r'<solution>(.*?)</solution>', response, re.DOTALL)
-            if match:
-                solutions.append(match.group(1).strip())
+            # Look for solution tags (handle multiple tags - take last one)
+            solution_matches = re.findall(r'<solution>(.*?)</solution>', response, re.DOTALL)
+            if solution_matches:
+                # Extract just the number from the solution if it's in a sentence
+                solution_text = solution_matches[-1].strip()
+                # Look for numbers in the solution text
+                numbers = re.findall(r'-?\d+\.?\d*', solution_text)
+                if numbers:
+                    # Take the last number as the answer
+                    solutions.append(numbers[-1])
+                else:
+                    solutions.append(solution_text)
             else:
                 solutions.append("")
         return solutions
@@ -354,9 +394,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         completions_text = self.processing_class.batch_decode(
             completion_ids, skip_special_tokens=True)
         
-        solutions = self._extract_solutions_from_responses(completions_text)
-        
-        return solutions
+        return completions_text
     
     def _generate_student_approaches(self, prompts_text):
         probe_prompts = []
