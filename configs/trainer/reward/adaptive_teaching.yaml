@@ -27,14 +27,14 @@ teacher_adaptive_template: |
   </thinking>
   
   <teaching>
-  [Only your guidance to the student goes here. Be concise for correct approaches, more detailed for wrong ones. Remind student to provide the final answer within <solution></solution> tags.]
+  [Only your guidance to the student goes here. Be concise for correct approaches, more detailed for wrong ones.]
   </teaching>
   
   Rules:
   - Keep <thinking> and <teaching> separate
   - NEVER solve the problem or give the answer in <teaching>
   - <teaching> should only contain guidance, not your thought process
-  - Focus on guiding the student's next step
+  - Focus on guiding the student's to provide correct answers
 
 student_with_teaching_template: |
   Question: {question}

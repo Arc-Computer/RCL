@@ -347,34 +347,86 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         import re
         solutions = []
         for response in responses:
-            # Look for solution tags (handle multiple tags - take last one)
-            solution_matches = re.findall(r'<solution>(.*?)</solution>', response, re.DOTALL)
-            if solution_matches:
-                # Extract just the number from the solution if it's in a sentence
-                solution_text = solution_matches[-1].strip()
-                # Look for numbers in the solution text
-                numbers = re.findall(r'-?\d+\.?\d*', solution_text)
-                if numbers:
-                    # Take the last number as the answer
-                    solutions.append(numbers[-1])
-                else:
-                    solutions.append(solution_text)
+            # First check for \boxed{} format (handle multiple - take last one)
+            boxed_matches = re.findall(r'\\boxed\{([^}]+)\}', response)
+            if boxed_matches:
+                # Take the last boxed answer
+                solution_text = boxed_matches[-1].strip()
+                # Clean and normalize the number
+                solution_text = self._normalize_number(solution_text)
+                solutions.append(solution_text)
             else:
-                solutions.append("")
+                # Fall back to solution tags (handle multiple tags - take last one)
+                solution_matches = re.findall(r'<solution>(.*?)</solution>', response, re.DOTALL)
+                if solution_matches:
+                    # Get the last solution tag content
+                    solution_text = solution_matches[-1].strip()
+                    
+                    # Look for "answer is X" patterns
+                    answer_patterns = [
+                        r'answer is (?:\\boxed\{)?([^.}\n]+)(?:\})?',
+                        r'answer:\s*(?:\\boxed\{)?([^.}\n]+)(?:\})?',
+                        r'thus[,\s]+(?:the\s+)?(?:answer\s+is\s+)?([^.}\n]+)',
+                        r'therefore[,\s]+(?:the\s+)?(?:answer\s+is\s+)?([^.}\n]+)',
+                        r'smallest number of weights needed is (\d+)',
+                        r'= (\d+(?:\.\d+)?)\s*(?:grams?|meters?|units?)?'
+                    ]
+                    
+                    found_answer = None
+                    for pattern in answer_patterns:
+                        matches = re.findall(pattern, solution_text, re.IGNORECASE)
+                        if matches:
+                            # Take the last match
+                            found_answer = matches[-1]
+                            break
+                    
+                    if found_answer:
+                        found_answer = self._normalize_number(found_answer)
+                        solutions.append(found_answer)
+                    else:
+                        # Last resort: find all numbers and take the last one
+                        numbers = re.findall(r'-?\d+(?:\.\d+)?', solution_text)
+                        if numbers:
+                            solutions.append(self._normalize_number(numbers[-1]))
+                        else:
+                            solutions.append("")
+                else:
+                    solutions.append("")
         return solutions
+    
+    def _normalize_number(self, num_str):
+        """Normalize number string for comparison"""
+        if not num_str:
+            return ""
+        # Remove trailing periods and spaces
+        num_str = num_str.strip().rstrip('.')
+        try:
+            # Convert to float then back to string to normalize
+            num = float(num_str)
+            # If it's a whole number, return as int string
+            if num == int(num):
+                return str(int(num))
+            else:
+                # Otherwise return with consistent decimal places
+                return f"{num:.2f}"
+        except:
+            # If not a number, return cleaned string
+            return num_str.strip()
     
     def _check_solution_correctness(self, solution, ground_truth):
         if not solution or not ground_truth:
             return False
         
-        solution_clean = solution.strip()
-        ground_truth_clean = ground_truth.strip()
+        # Normalize both for comparison
+        solution_normalized = self._normalize_number(solution)
+        ground_truth_normalized = self._normalize_number(ground_truth)
         
-        if solution_clean == ground_truth_clean:
+        if solution_normalized == ground_truth_normalized:
             return True
         
-        solution_lower = solution_clean.lower()
-        ground_truth_lower = ground_truth_clean.lower()
+        # Also try case-insensitive string comparison for non-numeric answers
+        solution_lower = solution.strip().lower()
+        ground_truth_lower = ground_truth.strip().lower()
         
         return solution_lower == ground_truth_lower
     
