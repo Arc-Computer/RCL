@@ -8,43 +8,43 @@ model_name_or_path: Arc-Intelligence/ATLAS-Teach-8B-Instruct
 
 bf16: true
 
-max_steps: 125
+max_steps: 250
 num_train_epochs: 1.0
 
 save_strategy: "steps"
 
-save_steps: 25
+save_steps: 10
 do_eval: true
 save_final_model: true
 
 eval_strategy: steps
-eval_steps: 4
+eval_steps: 10
 
 logging_steps: 1
 logging_strategy: steps
 
-train_batch_size: 256
+train_batch_size: 8
 per_device_train_batch_size: 1
-generation_aggregation_steps: 32
+generation_aggregation_steps: 2
 
-num_generations: 24
+num_generations: 2
 temperature: 0.7
 unbias_log_probabilities: true
 
-learning_rate: 0.000001
+learning_rate: 0.000002
 beta: 0.04
 
 sync_ref_model: true
 ref_model_mixup_alpha: 0.9
-ref_model_sync_steps: 32
+ref_model_sync_steps: 2
 
 student_model: "Qwen/Qwen3-4B"
 student_model_init_kwargs: null
 
 offload_untrained_models: true
 
-max_prompt_length: 16384
-max_completion_length: 16384
+max_prompt_length: 8192
+max_completion_length: 8192
 
 
 save_completions_probability: 0.1
@@ -52,7 +52,7 @@ save_completions_probability: 0.1
 lr_scheduler_type: "constant"
 lr_scheduler_kwargs: ~
 
-wandb_project: rl4lm_teacher
+wandb_project: rl_adaptive_teacher
 
 log_ctx_name: gr${num_generations}_${max_prompt_length}ctx_${max_completion_length}gen
 
@@ -63,5 +63,5 @@ output_dir: ${results_dir}/rcl_teacher/${exp_name}
 vllm_port: 8765
 use_vllm: false
 use_vllm_server: true
-vllm_host:
-num_vllm_clients:
+vllm_host: g477
+num_vllm_clients: 4

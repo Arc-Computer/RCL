@@ -1253,7 +1253,11 @@ class GRPOTrainer(Trainer):
 
         self._print_debugging_logs('finished loss...')
         gc.collect()
-        torch.cuda.empty_cache()
+        if self.accelerator.is_main_process:
+            torch.cuda.empty_cache()
+        self.accelerator.wait_for_everyone()
+        if not self.accelerator.is_main_process:
+            torch.cuda.empty_cache()
         return loss
 
     def prediction_step(self, model, inputs, prediction_loss_only, ignore_keys: Optional[list[str]] = None):
