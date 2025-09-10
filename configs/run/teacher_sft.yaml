@@ -39,7 +39,7 @@ packing: false
 max_seq_length: 16384
 per_device_eval_batch_size: 4
 
-wandb_project: rl4lm_sft
+wandb_project: adaptive_teaching_sft
 wandb_group_name: teacher_sft
 wandb_run_name: teacher_${trainer_log_name}_${max_seq_length}ctx
-output_dir: ${results_dir}/pre_rl_model
+output_dir: ${results_dir}/sft_model

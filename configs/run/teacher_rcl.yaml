@@ -31,7 +31,7 @@ num_generations: 32
 temperature: 0.7
 unbias_log_probabilities: true
 
-learning_rate: 0.000002
+learning_rate: 0.000001
 beta: 0.04
 
 sync_ref_model: true

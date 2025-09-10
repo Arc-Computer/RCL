@@ -2,9 +2,8 @@ from datasets import load_dataset, concatenate_datasets, Dataset
 from huggingface_hub import hf_hub_download
 import json
 from .utils import make_masked_sft_collator
-from .reasoning_datasets_info import (
-    DATA_CONFIGS, wrap_string_between_tag, grab_text_between_tag, get_tags,
-    ReasoningData, ADAPTIVE_TEACHING_SYSTEM_PROMPT)
+from .datasets_info import (
+    DATA_CONFIGS, DataConfig, ADAPTIVE_TEACHING_SYSTEM_PROMPT)
 
 
 def add_indices(ds):
@@ -14,7 +13,7 @@ def add_indices(ds):
 
 
 def get_process_line_fn(dataset_id_or_path):
-    data: ReasoningData = DATA_CONFIGS[dataset_id_or_path]
+    data: DataConfig = DATA_CONFIGS[dataset_id_or_path]
     system_prompt = data.system_prompt
 
     def process_line_fn(line, tokenizer):

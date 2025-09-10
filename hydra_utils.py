@@ -25,7 +25,7 @@ def fix_pad_token(tokenizer, model_name, unsafe=False):
     if tokenizer.pad_token is None:
         if "Llama" in model_name:
             tokenizer.pad_token = "<|reserved_special_token_5|>"
-        elif "Qwen" in model_name or 'Bespoke' in model_name:
+        elif "Qwen" in model_name:
             tokenizer.pad_token = "<|fim_pad|>"
         else:
             raise NotImplementedError
