@@ -6,6 +6,8 @@
 [![ATLAS-8B-Instruct](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ATLAS--8B--Instruct-blue)](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct)
 [![Arc-ATLAS-Teach Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-Arc--ATLAS--Teach-green)](https://huggingface.co/datasets/Arc-Intelligence/Arc-ATLAS-Teach-v0)
 
+<img src="public/ATLAS.png" alt="ATLAS - Adaptive Teaching and Learning Alignment System" width="400">
+
 </div>
 
 This repository implements **Reinforced Continual Learning (RCL)**, a practical system for training teacher models that adapt to student capability without degrading performance. It is the production track of our broader vision:
@@ -90,7 +92,7 @@ See [docs/guides/distributed-training.md](docs/guides/) for multi-GPU setup and 
   model_name_or_path=path/of/saved/pre_rl_model
 ```
 
-**Datasets:** Defaults to 8B teacher model with `bespokelabs/Bespoke-Stratos-17k` (SFT) and `Arc-Intelligence/Arc-ATLAS-Teach-v0` (RL). Custom datasets need `question`, `solution` columns. See [docs/guides/data-preparation.md](docs/guides/) for formatting details.
+**Datasets:** Defaults to 8B teacher model with `bespokelabs/Bespoke-Stratos-17k` (SFT) and `Arc-Intelligence/Arc-ATLAS-Teach-v0` (RL). Custom datasets need `question`, `solution` columns. See [docs/guides/data-requirements.md](docs/guides/) for formatting details.
 
 ## Adaptive Teaching Protocol
 
@@ -200,7 +202,7 @@ Verified results from our latest training run demonstrate non-degradation teachi
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 num_generations=32
 ```
 
-See [docs/benchmarks/](docs/benchmarks/) for complete methodology and [docs/guides/reproduction.md](docs/guides/) for detailed reproduction steps.
+See [docs/benchmarks/](docs/benchmarks/) for complete methodology and [docs/benchmarks/reproduction.md](docs/benchmarks/) for detailed reproduction steps.
 
 ## Citation
 

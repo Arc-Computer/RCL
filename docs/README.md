@@ -36,7 +36,7 @@ The system uses a diagnostic probing protocol where teachers first assess studen
 ## Core Concepts
 
 **Adaptive Teaching Protocol**:
-- Pass 1: Diagnostic probing (≤500 tokens) to assess student capability
+- Pass 1: Diagnostic probing (≤50 tokens) to assess student capability
 - Pass 2: Conditional teaching tailored to diagnosed capability level
 
 **Reward Design**:
