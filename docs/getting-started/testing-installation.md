@@ -24,18 +24,18 @@ huggingface-cli whoami
 
 Run the official quickstart commands to validate complete setup:
 
-### SFT Warmup Test (10 steps)
+### SFT Warmup Test (1 epoch)
 
 ```bash
-./launch.sh 1 configs/run/quickstart_sft.yaml report_to=null save_final_model=false
+./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
 ```
 
-**Expected**: Model initialization, dataset loading (Bespoke-Stratos-17k), and 10 training steps completing successfully.
+**Expected**: Model initialization, dataset loading (Arc-ATLAS-Teach-v0), and 1 training epoch completing successfully.
 
 ### vLLM Integration Test (4 steps)
 
 ```bash
-./launch_with_server.sh 1 1 configs/run/quickstart_rcl.yaml report_to=null max_steps=4 eval_steps=1
+./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
 
 **Expected**: vLLM server startup, GRPO training with adaptive teaching rewards, and completion without errors.
@@ -46,10 +46,10 @@ For limited GPU memory, use CPU offloading:
 
 ```bash
 # SFT with offload
-./launch.sh 1 configs/run/quickstart_sft.yaml report_to=null save_final_model=false offload
+./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1 offload
 
 # RL with offload
-./launch_with_server.sh 1 1 configs/run/quickstart_rcl.yaml report_to=null max_steps=4 eval_steps=1 offload
+./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1 offload
 ```
 
 ## Troubleshooting Common Issues
@@ -69,7 +69,7 @@ nvcc --version
 curl http://localhost:8765/health
 
 # Use alternative port
-./launch_with_server.sh 1 1 configs/run/quickstart_rcl.yaml report_to=null max_steps=4 eval_steps=1 vllm_port=8766
+./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1 vllm_port=8766
 ```
 
 ### Memory Management

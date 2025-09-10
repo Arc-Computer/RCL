@@ -18,7 +18,7 @@ Train the base model with supervised fine-tuning on reasoning data:
 ```
 
 **Key parameters**:
-- **Default dataset**: `bespokelabs/Bespoke-Stratos-17k` (SFT dataset)
+- **Default dataset**: `Arc-Intelligence/Arc-ATLAS-Teach-v0` (SFT split)
 - **Model**: 8B parameter teacher model
 - **Duration**: Complete SFT warmup phase
 - **Output**: Saved model checkpoint ready for RL training

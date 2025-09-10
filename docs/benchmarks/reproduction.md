@@ -9,7 +9,7 @@ To reproduce the performance results from the README:
 
 ```bash
 ./launch.sh 4 configs/run/teacher_sft.yaml \
-  dataset_id_or_path=bespokelabs/Bespoke-Stratos-17k \
+  dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
   output_dir=results/pre_rl_model
 ```
 

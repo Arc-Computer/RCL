@@ -28,20 +28,20 @@ This repository provides **production-ready code for training adaptive teacher m
 
 Run minimal smoke tests on a single GPU to validate your setup.
 
-**SFT warmup (10 steps):**
+**SFT warmup (1 epoch):**
 
 ```bash
-./launch.sh 1 configs/run/quickstart_sft.yaml report_to=null save_final_model=false
+./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
 ```
 
 **RL with vLLM (4 steps):**
 
 ```bash
-./launch_with_server.sh 1 1 configs/run/quickstart_rcl.yaml report_to=null max_steps=4 eval_steps=1
+./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
 
 **Notes:**
-- `quickstart_rcl.yaml` uses `use_vllm_server: true` by default
+- `teacher_rcl.yaml` uses `use_vllm_server: true` by default
 - `launch_with_server.sh` sets `vllm_host` and validates `vllm_port`
 - Add `offload` at the end of commands to reduce GPU memory usage
 
@@ -93,7 +93,7 @@ See [docs/guides/distributed-training.md](docs/guides/) for multi-GPU setup and 
   model_name_or_path=path/of/saved/pre_rl_model
 ```
 
-**Datasets:** Defaults to 8B teacher model with `bespokelabs/Bespoke-Stratos-17k` (SFT) and `Arc-Intelligence/Arc-ATLAS-Teach-v0` (RL). Custom datasets need `question`, `solution` columns. See [docs/guides/data-requirements.md](docs/guides/) for formatting details.
+**Datasets:** Defaults to 8B teacher model with `Arc-Intelligence/Arc-ATLAS-Teach-v0` for both SFT and RL phases. Custom datasets need `question`, `solution` columns. See [docs/guides/data-requirements.md](docs/guides/) for formatting details.
 
 ## Adaptive Teaching Protocol
 
@@ -197,7 +197,7 @@ Verified results from our latest training run demonstrate non-degradation teachi
 **Reproduce Results:**
 ```bash
 # SFT Warmup  
-./launch.sh 4 configs/run/teacher_sft.yaml dataset_id_or_path=bespokelabs/Bespoke-Stratos-17k
+./launch.sh 4 configs/run/teacher_sft.yaml dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0
 
 # RL Training
 ./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \

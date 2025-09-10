@@ -113,8 +113,7 @@ class ReasoningData:
 #### Built-in Configurations
 
 - **CUSTOM_CONFIG_STRATOS_STYLE**: Default for unknown datasets
-- **bespokelabs/Bespoke-Stratos-17k**: Reasoning with think tags
-- **Arc-Intelligence/Arc-ATLAS-Teach-v0**: Adaptive teaching format
+- **Arc-Intelligence/Arc-ATLAS-Teach-v0**: Primary dataset with adaptive teaching format
 - **openr1/Big-Math-RL-Verified-Processed**: Math problems
 
 ### ADAPTIVE_TEACHING_SYSTEM_PROMPT

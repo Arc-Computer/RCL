@@ -6,7 +6,7 @@ Recommended example teacher: `Arc-Intelligence/ATLAS-8B-Instruct` (see README). 
 ## Configure Model
 
 - Select via `- override /model@_global_:` in run YAMLs or with CLI overrides (e.g., `model_name_or_path=...`).
-- `hydra_utils.fix_pad_token` ensures pad token safety for Llama/Qwen/Bespoke variants.
+- `hydra_utils.fix_pad_token` ensures pad token safety for Llama/Qwen variants.
 
 ## Practical Guidance
 

@@ -38,7 +38,7 @@ Verify that adaptive teaching improves student outcomes without degrading perfor
 
 ```bash
 # Minimal evaluation for development
-./launch_with_server.sh 1 1 configs/run/quickstart_rcl.yaml \
+./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml \
   report_to=null max_steps=4 eval_steps=1
 ```
 

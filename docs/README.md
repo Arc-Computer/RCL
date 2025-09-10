@@ -17,12 +17,12 @@ The system uses a diagnostic probing protocol where teachers first assess studen
 
 **SFT Training**:
 ```bash
-./launch.sh 1 configs/run/quickstart_sft.yaml report_to=null save_final_model=false
+./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
 ```
 
 **RL Training with vLLM**:
 ```bash
-./launch_with_server.sh 1 1 configs/run/quickstart_rcl.yaml report_to=null max_steps=4 eval_steps=1
+./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
 
 ## Architecture
