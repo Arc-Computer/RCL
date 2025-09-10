@@ -78,7 +78,7 @@ RCL uses a two-phase SFT→RL pipeline managed via [Hydra](https://hydra.cc/) co
 
 **Key Parameters:** `degradation_penalty_multiplier`, `dataset_id_or_path`, `model_name_or_path`. Add `offload` for memory optimization. Results save to `results/`.
 
-See [docs/guides/training-pipeline.md](docs/guides/) for detailed examples and distributed training setup.
+See [docs/guides/distributed-training.md](docs/guides/) for multi-GPU setup and [docs/guides/rl-training.md](docs/guides/) for detailed RL parameters.
 
 **Production Training (8×H100):**
 ```sh
@@ -98,7 +98,7 @@ RCL's core innovation: diagnostic probing followed by capability-adapted teachin
 
 [Diagram Placeholder: ATLAS two-pass inference protocol — probe phase for capability diagnosis followed by adaptive teaching phase]
 
-**Pass 1: Diagnostic Probing** - Teacher probes student understanding with minimal interaction (≤500 tokens) to reveal capability level without requiring full solutions.
+**Pass 1: Diagnostic Probing** - Teacher probes student understanding with minimal interaction (≤50 tokens) to reveal capability level without requiring full solutions.
 
 **Pass 2: Adaptive Teaching** - Conditional teaching tailored to diagnosed capability:
 - Strong students: Minimal intervention to avoid degradation  

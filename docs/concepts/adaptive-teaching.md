@@ -29,6 +29,6 @@ Implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward` computes p
 ## See Also
 
 - [Reward Design](reward-design.md) - Details on asymmetric rewards and efficiency bonuses
-- [RL Training](rl-training.md) - GRPO implementation with adaptive teaching
-- [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
+- [RL Training](../guides/rl-training.md) - GRPO implementation with adaptive teaching
+- [Performance Results](../../README.md#performance-results) - Complete results and reproducibility
 

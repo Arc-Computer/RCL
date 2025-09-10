@@ -58,10 +58,8 @@ The system uses a diagnostic probing protocol where teachers first assess studen
 - [First Experiment](getting-started/first-experiment.md) - Complete workflow example
 
 ### Guides  
-- [Training Pipeline](guides/training-pipeline.md) - SFT→RL workflow
 - [Model Selection](guides/model-selection.md) - Base model configuration
 - [Data Requirements](guides/data-requirements.md) - Dataset preparation
-- [Custom Datasets](guides/custom-datasets.md) - Data format specifications
 - [Distributed Training](guides/distributed-training.md) - Multi-GPU setup
 - [RL Training](guides/rl-training.md) - GRPO configuration details
 
@@ -76,11 +74,11 @@ The system uses a diagnostic probing protocol where teachers first assess studen
 - [Config System](architecture/config-system.md) - Hydra configuration structure
 - [vLLM Integration](architecture/vllm-integration.md) - Server and client architecture
 - [Components](architecture/components.md) - Core modules and interfaces
+- [Compound Intelligence](architecture/compound-intelligence.md) - Vision and roadmap
 
 ### Concepts
-- [Adaptive Teaching](concepts/adaptive-teaching.md) - Two-pass protocol details
-- [Reward Design](concepts/reward-design.md) - Teaching effectiveness metrics
-- [Two-Pass Protocol](concepts/two-pass-protocol.md) - Implementation specifics
+- [Adaptive Teaching](concepts/adaptive-teaching.md) - Two-pass diagnostic protocol and teaching strategy
+- [Reward Design](concepts/reward-design.md) - Teaching effectiveness metrics and asymmetric rewards
 
 ### Deployment
 - [Inference](deployment/inference.md) - Production deployment patterns
@@ -88,9 +86,7 @@ The system uses a diagnostic probing protocol where teachers first assess studen
 - [Integration](deployment/integration.md) - API integration guidelines
 
 ### Troubleshooting
-- [Common Issues](troubleshooting/common-issues.md) - Frequent problems and solutions
-- [Performance](troubleshooting/performance.md) - Optimization and memory management
-- [Debugging](troubleshooting/debugging.md) - Diagnostic procedures
+- [Debugging](troubleshooting/debugging.md) - Validation tests and verbose logging
 
 ### Benchmarks
 - [Results](benchmarks/results.md) - Performance metrics and comparisons

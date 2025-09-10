@@ -24,6 +24,6 @@ Notes:
 ## See Also
 
 - [Adaptive Teaching](adaptive-teaching.md) - Two-pass diagnostic and teaching protocol
-- [RL Training](rl-training.md) - How rewards guide GRPO optimization
-- [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
+- [RL Training](../guides/rl-training.md) - How rewards guide GRPO optimization
+- [Performance Results](../../README.md#performance-results) - Complete results and reproducibility
 

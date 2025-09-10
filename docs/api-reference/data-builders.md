@@ -255,4 +255,4 @@ train_ds, _, collator = load_formatted_sft_dataset(
 
 - [Trainers API](trainers.md) - Training classes that use these datasets
 - [Configuration](configs.md) - Dataset configuration in Hydra
-- [Custom Datasets Guide](../guides/custom-datasets.md) - Tutorial on dataset integration
+- [Data Requirements Guide](../guides/data-requirements.md) - Dataset format specifications

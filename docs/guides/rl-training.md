@@ -34,6 +34,6 @@ See `trainers/teacher_trainers.py` and `configs/trainer/reward/adaptive_teaching
 
 - [Adaptive Teaching](../concepts/adaptive-teaching.md) - Core diagnostic and teaching protocol
 - [Reward Design](../concepts/reward-design.md) - Asymmetric reward structure
-- [Training Pipeline](training-pipeline.md) - Full SFT → RL workflow
+- [Distributed Training](distributed-training.md) - Multi-GPU setup and memory optimization
 - [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
 

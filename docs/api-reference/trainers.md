@@ -1,4 +1,167 @@
 
+# Trainers API
+
+## GRPOTrainer
+
+Base trainer implementing Group Relative Policy Optimization for reinforcement learning from human feedback.
+
+### Class Definition
+
+```python
+class GRPOTrainer(Trainer):
+    """
+    Trainer for Group Relative Policy Optimization (GRPO).
+    Extends Hugging Face Trainer with RL-specific functionality.
+    """
+```
+
+### Constructor
+
+```python
+def __init__(
+    self,
+    model: Union[str, PreTrainedModel],
+    reward_funcs: Union[RewardFunc, list[RewardFunc]],
+    args: GRPOConfig = None,
+    train_dataset: Optional[Union[Dataset, IterableDataset]] = None,
+    eval_dataset: Optional[Union[Dataset, IterableDataset, dict]] = None,
+    processing_class: Optional[PreTrainedTokenizerBase] = None,
+    reward_processing_classes: Optional[Union[PreTrainedTokenizerBase, list]] = None,
+    callbacks: Optional[list[TrainerCallback]] = None,
+    optimizers: tuple = (None, None),
+    peft_config: Optional["PeftConfig"] = None,
+)
+```
+
+#### Parameters
+
+- **model** : `Union[str, PreTrainedModel]`
+  - Model to train (path or instantiated model)
+  
+- **reward_funcs** : `Union[RewardFunc, list[RewardFunc]]`
+  - Reward function(s) for GRPO optimization
+  - Can be model paths, PreTrainedModel instances, or callable functions
+  
+- **args** : `GRPOConfig`, optional
+  - Training configuration (auto-generated if None)
+  
+- **train_dataset** : `Union[Dataset, IterableDataset]`, optional
+  - Training dataset with 'prompt' column required
+  
+- **eval_dataset** : `Union[Dataset, IterableDataset, dict]`, optional
+  - Evaluation dataset(s) for validation
+  
+- **processing_class** : `PreTrainedTokenizerBase`, optional
+  - Tokenizer (auto-loaded if None, uses left padding)
+  
+- **reward_processing_classes** : `Union[PreTrainedTokenizerBase, list]`, optional
+  - Tokenizers for reward models (defaults to processing_class)
+  
+- **callbacks** : `list[TrainerCallback]`, optional
+  - Training callbacks for monitoring/control
+  
+- **optimizers** : `tuple`, default=(None, None)
+  - Custom optimizer and scheduler tuple
+  
+- **peft_config** : `PeftConfig`, optional
+  - Parameter-efficient fine-tuning configuration
+
+### Key Attributes
+
+- **ref_model** : `PreTrainedModel`
+  - Reference model for KL divergence regularization
+  
+- **reward_funcs** : `list`
+  - List of reward functions for multi-objective optimization
+  
+- **reward_weights** : `torch.Tensor`
+  - Weights for combining multiple reward functions
+  
+- **num_generations** : `int`
+  - Number of completions sampled per prompt
+  
+- **temperature** : `float`
+  - Sampling temperature for generation
+  
+- **beta** : `float`
+  - KL divergence coefficient for regularization
+
+### Key Methods
+
+#### compute_loss()
+```python
+def compute_loss(
+    self, 
+    model, 
+    inputs, 
+    return_outputs=False, 
+    num_items_in_batch=None
+) -> torch.Tensor
+```
+
+Computes GRPO loss using advantages and KL regularization.
+
+**Parameters:**
+- model: Current policy model
+- inputs: Batch containing prompt_ids, completion_ids, advantages, ref_per_token_logps
+- return_outputs: Not supported (raises ValueError)
+- num_items_in_batch: Unused parameter
+
+**Returns:**
+- GRPO loss tensor combining policy gradient and KL penalty
+
+#### generate()
+```python
+def generate(
+    self,
+    model: PreTrainedModel,
+    inputs: dict,
+    generation_config: Optional[GenerationConfig] = None
+) -> torch.Tensor
+```
+
+Generates completions using model or vLLM backend.
+
+**Parameters:**
+- model: Model for generation (unused if vLLM enabled)
+- inputs: Input tensors with prompts
+- generation_config: Generation parameters (uses self.generation_config if None)
+
+**Returns:**
+- Generated token IDs tensor
+
+### vLLM Integration
+
+GRPOTrainer supports vLLM for high-throughput generation:
+
+```python
+# Enable vLLM generation
+config = GRPOConfig(
+    use_vllm=True,
+    vllm_device="cuda:1",
+    vllm_gpu_memory_utilization=0.9
+)
+
+# Or use external vLLM server
+config = GRPOConfig(
+    use_vllm_server=True,
+    vllm_host="localhost",
+    vllm_port=8765,
+    num_vllm_clients=2
+)
+```
+
+### Memory Optimization
+
+- **DeepSpeed ZeRO**: Automatic reference model handling for ZeRO-3
+- **CPU Offloading**: Optional offloading for reference and reward models
+- **Gradient Accumulation**: Separate accumulation for backprop efficiency
+
+### Reference
+`trainers/grpo.py:151-1500`
+
+---
+
 ## TeacherGRPOTrainer
 
 Extends GRPOTrainer with adaptive teaching capabilities using a two-pass protocol.
@@ -46,7 +209,7 @@ def __init__(
 
 #### Key Attributes
 
-- **max_probe_tokens** : `int`, default=500
+- **max_probe_tokens** : `int`, default=50
   - Maximum tokens for diagnostic probe responses
   
 - **student_diagnostic_template** : `str`

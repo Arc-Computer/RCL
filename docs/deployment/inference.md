@@ -1,23 +1,67 @@
 
-# Inference
+# Inference Deployment
 
-## Load with Transformers
+## Loading Trained Models
+
+### Using Transformers
+
+Load ATLAS teacher models trained with RCL:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-ckpt = "results/rcl_teacher/<group>/<run>/<ts>"  # or a pushed Hub repo
-tok = AutoTokenizer.from_pretrained(ckpt)
-model = AutoModelForCausalLM.from_pretrained(ckpt, torch_dtype="auto", device_map="auto")
+# Load from local checkpoint
+model_path = "results/teacher_model_output"  # Path from training output_dir
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+model = AutoModelForCausalLM.from_pretrained(
+    model_path, 
+    torch_dtype=torch.bfloat16, 
+    device_map="auto"
+)
 
-prompt = "Solve: ..."
-inputs = tok(prompt, return_tensors="pt").to(model.device)
-out = model.generate(**inputs, max_new_tokens=256)
-print(tok.decode(out[0], skip_special_tokens=True))
+# Or load published ATLAS models
+model_name = "Arc-Intelligence/ATLAS-8B-Thinking"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
 ```
 
-## Export Considerations
+### Two-Pass Inference Protocol
 
-- Save tokenizer with the model (`trainer.save_model` + `tokenizer.save_pretrained`).
-- Ensure pad token is set (Qwen/Llama) via `fix_pad_token` at training time.
+ATLAS teacher models use a two-pass protocol for adaptive teaching:
+
+```python
+# Pass 1: Diagnostic probing
+probe_prompt = "Question: {question}\n\nBefore solving, briefly describe your approach:"
+probe_inputs = tokenizer(probe_prompt, return_tensors="pt").to(model.device)
+probe_output = model.generate(**probe_inputs, max_new_tokens=50)
+student_approach = tokenizer.decode(probe_output[0], skip_special_tokens=True)
+
+# Pass 2: Adaptive teaching based on probe
+teaching_prompt = f"Question: {question}\n\nStudent approach: {student_approach}\n\nProvide adaptive teaching:"
+teaching_inputs = tokenizer(teaching_prompt, return_tensors="pt").to(model.device)
+teaching_output = model.generate(**teaching_inputs, max_new_tokens=512)
+final_response = tokenizer.decode(teaching_output[0], skip_special_tokens=True)
+```
+
+## Production Considerations
+
+### Model Export
+- Training saves complete model and tokenizer automatically
+- Output directory specified by `output_dir` parameter in configs
+- Models compatible with standard Transformers inference pipeline
+
+### Memory Requirements
+- **ATLAS-8B models**: Minimum 16GB GPU memory (bfloat16)
+- Use `torch_dtype=torch.bfloat16` for optimal memory usage
+- `device_map="auto"` enables multi-GPU inference if needed
+
+### Generation Parameters
+- **Probe phase**: `max_new_tokens=50` (diagnostic responses)
+- **Teaching phase**: `max_new_tokens=512` (adaptive guidance)
+- **Temperature**: 0.7 (matches training configuration)
+- **Top-p**: 0.9 (matches training configuration)
 
