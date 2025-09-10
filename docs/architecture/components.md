@@ -1,7 +1,3 @@
----
-title: Components
-description: Core modules—trainers, rewards, data, and utilities with their roles.
----
 
 # Components
 

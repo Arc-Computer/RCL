@@ -1,7 +1,3 @@
----
-title: SFT Warmup
-description: Supervised fine-tuning setup, data formatting, and tips.
----
 
 # SFT Warmup
 

@@ -1,7 +1,3 @@
----
-title: Inference
-description: Loading trained models and running local inference.
----
 
 # Inference
 

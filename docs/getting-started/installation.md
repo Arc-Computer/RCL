@@ -1,7 +1,3 @@
----
-title: Installation
-description: Environment setup for Python 3.11, CUDA, PyTorch 2.6.0, and vLLM 0.8.3.
----
 
 # Installation
 

@@ -1,7 +1,3 @@
----
-title: Reward Design
-description: Asymmetric reward penalizing degradation and encouraging concise, effective teaching.
----
 
 # Reward Design (Asymmetric)
 

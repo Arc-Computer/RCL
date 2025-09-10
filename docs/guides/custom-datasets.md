@@ -1,7 +1,3 @@
----
-title: Custom Datasets
-description: Data column expectations, formatting, and integration with DATA_CONFIGS.
----
 
 # Custom Datasets
 

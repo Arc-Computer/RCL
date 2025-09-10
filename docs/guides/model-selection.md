@@ -1,7 +1,3 @@
----
-title: Model Selection
-description: Choosing base models and configuring tokenizer/model settings.
----
 
 # Model Selection
 

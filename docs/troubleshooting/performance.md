@@ -1,7 +1,3 @@
----
-title: Performance Tuning
-description: Optimizing GPU memory, throughput, and training time.
----
 
 # Performance Tuning
 

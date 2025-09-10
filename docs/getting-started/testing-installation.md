@@ -1,7 +1,3 @@
----
-title: Testing Your Installation
-description: One-minute smoke tests to validate setup and GPU memory configuration.
----
 
 # Testing Your Installation
 

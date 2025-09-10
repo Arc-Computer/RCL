@@ -1,7 +1,3 @@
----
-title: Architecture Overview
-description: High-level view of training, configs, and optional vLLM servers.
----
 
 # Architecture Overview
 

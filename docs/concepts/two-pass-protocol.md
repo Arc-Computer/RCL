@@ -1,7 +1,3 @@
----
-title: Two-Pass Protocol
-description: Diagnostic probe followed by adaptive teaching with GRPO training.
----
 
 # Two-Pass Protocol
 

@@ -1,7 +1,3 @@
----
-title: Serving with vLLM
-description: Running vLLM servers and integrating with client code.
----
 
 # Serving with vLLM
 

@@ -1,7 +1,3 @@
----
-title: Data Requirements
-description: Required columns, example schemas, and how to customize DATA_CONFIGS.
----
 
 # Data Requirements
 

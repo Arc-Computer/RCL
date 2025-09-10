@@ -1,7 +1,3 @@
----
-title: Reproduction
-description: Steps to reproduce training runs for the in-progress paper.
----
 
 # Reproduction
 

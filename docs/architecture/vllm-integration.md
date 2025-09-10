@@ -1,7 +1,3 @@
----
-title: vLLM Integration
-description: Server/client architecture, GPU allocation, and operational notes.
----
 
 # vLLM Integration
 

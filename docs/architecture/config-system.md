@@ -1,7 +1,3 @@
----
-title: Configuration System
-description: Hydra composition, overrides, and DeepSpeed/Accelerate settings.
----
 
 # Configuration System (Hydra)
 

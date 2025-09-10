@@ -1,7 +1,3 @@
----
-title: First Experiment
-description: End-to-end SFT warmup and RL training on Arc‑ATLAS‑Teach.
----
 
 # First Experiment
 

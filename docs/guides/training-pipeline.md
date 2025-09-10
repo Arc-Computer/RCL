@@ -1,7 +1,3 @@
----
-title: Training Pipeline
-description: End-to-end workflow—SFT warmup followed by GRPO-based RL.
----
 
 # Training Pipeline
 

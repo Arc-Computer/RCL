@@ -1,7 +1,3 @@
----
-title: Results
-description: Capturing and sharing experiment results with clear provenance.
----
 
 # Results
 

@@ -1,7 +1,3 @@
----
-title: Evaluation Methodology
-description: Guidance to evaluate adaptive teaching without formal metric definitions.
----
 
 # Evaluation Methodology
 

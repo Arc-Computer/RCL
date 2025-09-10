@@ -1,7 +1,3 @@
----
-title: Adaptive Teaching
-description: Core RCL concept—diagnose capability, then teach to avoid degradation.
----
 
 # Adaptive Teaching
 

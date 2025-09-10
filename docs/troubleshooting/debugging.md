@@ -1,7 +1,3 @@
----
-title: Debugging
-description: Techniques for diagnosing training issues and validating changes.
----
 
 # Debugging
 

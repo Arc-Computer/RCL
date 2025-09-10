@@ -1,7 +1,3 @@
----
-title: Distributed Training
-description: Multi-GPU setup with DeepSpeed ZeRO and memory optimization.
----
 
 # Distributed Training
 

@@ -1,7 +1,3 @@
----
-title: RL Training (GRPO)
-description: Configure and run GRPO RL with adaptive teaching reward and optional vLLM.
----
 
 # RL Training (GRPO)
 
