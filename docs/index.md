@@ -9,24 +9,25 @@ RCL enables **Compound Intelligence**—agents that learn from every interaction
 
 ```python
 # Current approach: Train adaptive teaching models
-from trainers import TeacherGRPOTrainer
+from trainers import TeacherGRPOTrainer, GRPOConfig
 from trainers.teacher_rewards import AdaptiveTeachingReward
 
-# Configure adaptive teaching
+# Configure adaptive teaching (GRPO + reward)
 config = GRPOConfig(
-    model_name_or_path="Qwen/Qwen2.5-7B-Instruct",
+    output_dir="results/adaptive_teacher",
     num_generations=8,
-    max_probe_tokens=50,  # Brief diagnostic
+)
+
+reward = AdaptiveTeachingReward(
     degradation_penalty_multiplier=2.0
 )
 
-# Train teacher that adapts to student capability
 trainer = TeacherGRPOTrainer(
-    config=config,
-    reward_function=AdaptiveTeachingReward()
+    model="Arc-Intelligence/ATLAS-8B-Instruct",
+    reward_funcs=[reward],
+    args=config,
+    train_dataset=...,  # see guides
 )
-
-# Future: SDK for production integration (in development)
 ```
 
 ## Choose Your Path
@@ -114,7 +115,7 @@ trainer = TeacherGRPOTrainer(
 
 **[Teacher-Student Loop](concepts/adaptive-teaching.md)**: Socratic dialogue that diagnoses gaps and adapts instruction.
 
-**[Verification-Driven Learning](concepts/verification.md)**: Every update traces to a verifiable outcome.
+<!-- Verification page will be added later -->
 
 ## Getting Started
 
@@ -160,7 +161,6 @@ bash scripts/install_08.sh
 ## Learn More
 
 - [The Era of the Outer Loop](https://arc.computer/blog/outer-loop) - Why learning beats knowing
-- [Technical Paper](https://arxiv.org/rcl) - Detailed architecture
 - [Discord Community](https://discord.gg/rcl) - Get help and share experiences
 
 ---

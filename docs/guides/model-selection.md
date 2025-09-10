@@ -5,7 +5,7 @@ description: Choosing base models and configuring tokenizer/model settings.
 
 # Model Selection
 
-Default teacher: `Qwen/Qwen2.5-7B-Instruct` (see run configs). Alternatives are configured under `configs/model/*`.
+Recommended example teacher: `Arc-Intelligence/ATLAS-8B-Instruct` (see README). You can configure other models under `configs/model/*` or override via CLI.
 
 ## Configure Model
 
@@ -16,4 +16,3 @@ Default teacher: `Qwen/Qwen2.5-7B-Instruct` (see run configs). Alternatives are 
 
 - Prefer 7B–8B for initial experiments; larger models may require stronger offloading and longer training.
 - Ensure tokenizer and model are compatible; save tokenizer with final model when exporting.
-

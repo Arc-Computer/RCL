@@ -40,13 +40,14 @@ CUDA available: True
 
 ```bash
 # Quick validation run - 10 steps only
-./launch.sh 4 configs/run/quickstart_sft.yaml \
+./launch.sh 4 configs/run/teacher_sft.yaml \
+  max_steps=10 \
   output_dir=results/quickstart_sft
 ```
 
 **Expected logs (within 30 seconds):**
 ```
-[INFO] Loading model: Qwen/Qwen2.5-7B-Instruct
+[INFO] Loading model: Arc-Intelligence/ATLAS-8B-Instruct
 [INFO] Model initialized successfully
 [INFO] Starting training with 10 steps
 {'loss': 2.345, 'learning_rate': 1e-05, 'epoch': 0.1}
@@ -61,8 +62,9 @@ CUDA available: True
 
 ```bash
 # Quick RL validation - 4 steps, 2 generations
-./launch_with_server.sh 1 3 configs/run/quickstart_rcl.yaml \
-  model_name_or_path=results/quickstart_sft
+./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+  model_name_or_path=results/quickstart_sft \
+  max_steps=4 num_generations=2
 ```
 
 **Expected logs:**
@@ -79,6 +81,8 @@ Running launch script...
 - ✅ Generations complete without timeout
 - ✅ Positive mean rewards
 - ✅ KL divergence < 0.1
+
+Note: `configs/run/quickstart_rcl.yaml` uses `use_vllm_server=true` by default and sets `vllm_port`. The helper script `launch_with_server.sh` assigns `vllm_host` and `num_vllm_clients` automatically.
 
 ## Troubleshooting
 
@@ -178,4 +182,3 @@ report_to=null save_final_model=false logging_steps=999
 ---
 
 **Next:** [Testing Your Installation](testing-installation.md) → [First Experiment](first-experiment.md)
-

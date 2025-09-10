@@ -103,7 +103,7 @@ When loading this dataset, the function:
 from transformers import AutoTokenizer
 from custom_data.sft_data import load_formatted_sft_dataset
 
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-7B-Instruct")
+tokenizer = AutoTokenizer.from_pretrained("Arc-Intelligence/ATLAS-8B-Instruct")
 
 # Load standard dataset
 train_ds, val_ds, collator = load_formatted_sft_dataset(
@@ -118,7 +118,6 @@ train_ds, val_ds, collator = load_formatted_sft_dataset(
 train_ds, _, collator = load_formatted_sft_dataset(
     tokenizer=tokenizer,
     dataset_id_or_path="Arc-Intelligence/Arc-ATLAS-Teach-v0",
-    artificial_epochs=3  # Repeat 3 times
 )
 ```
 
@@ -384,4 +383,3 @@ train_ds, _, collator = load_formatted_sft_dataset(
 - [Trainers API](trainers.md) - Training classes that use these datasets
 - [Configuration](configs.md) - Dataset configuration in Hydra
 - [Custom Datasets Guide](../guides/custom-datasets.md) - Tutorial on dataset integration
-

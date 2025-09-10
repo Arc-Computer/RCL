@@ -311,7 +311,8 @@ else:
 ### Example: Training with Adaptive Teaching
 
 ```python
-from trainers import TeacherGRPOTrainer, AdaptiveTeachingReward
+from trainers import TeacherGRPOTrainer
+from trainers.teacher_rewards import AdaptiveTeachingReward
 from trainers.grpo_config import GRPOConfig
 
 # Configure training
@@ -325,20 +326,18 @@ config = GRPOConfig(
     max_probe_tokens=50,
     temperature=0.7,
     beta=0.04,
-    degradation_penalty_multiplier=2.0,
-    efficiency_weight=1.0
 )
 
 # Initialize reward
 reward_func = AdaptiveTeachingReward(
     degradation_penalty_multiplier=2.0,
-    efficiency_weight=1.0
+    efficiency_weight=1.0,
 )
 
 # Create trainer
 trainer = TeacherGRPOTrainer(
-    model="Qwen/Qwen2.5-7B-Instruct",
-    student_model="Qwen/Qwen2.5-1.5B-Instruct",
+    model="Arc-Intelligence/ATLAS-8B-Instruct",
+    student_model="Arc-Intelligence/ATLAS-8B-Thinking",
     reward_funcs=[reward_func],
     args=config,
     train_dataset=dataset,
