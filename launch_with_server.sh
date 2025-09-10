@@ -84,12 +84,27 @@ master_addr=$(hostname)
 echo "MODEL_NAME=$model_name, MASTER_ADDR=$master_addr, BASE_PORT=$base_port, \
 NUM_GPUS=$num_gpus" > vllm_server_sessions.txt
 
-# launch one vllm server per gpu
+# read student model from yaml
+student_model=$(grep '^student_model:' "$yaml_file" | awk '{print $2}' | tr -d '"')
+if [[ -z "$student_model" ]]; then
+  echo "Error: student_model not found in $yaml_file"
+  exit 1
+fi
+
+# launch vllm servers alternating between teacher and student models
 for ((i=0; i<num_gpus; i++)); do
   seed=$((base_seed + i))
   seed_arg="--seed $seed"
+  
+  # Alternate between teacher (even) and student (odd) models
+  if (( i % 2 == 0 )); then
+    current_model=$model_name
+  else
+    current_model=$student_model
+  fi
+  
   cmd="CUDA_VISIBLE_DEVICES=$i python trainers/vllm_server.py \
---model=$model_name --port=$((base_port + i)) $prefix_arg $seed_arg"
+--model=$current_model --port=$((base_port + i)) $prefix_arg $seed_arg"
   bash -c "$cmd" 2>&1 | tee -a job_${PBS_JOBID}.log &
 done
 

@@ -145,19 +145,40 @@ class AdaptiveTeachingReward(TeacherReward):
             tokenizer=tokenizer,
         )
     
+    def _normalize_number(self, num_str):
+        """Normalize number string for comparison"""
+        if not num_str:
+            return ""
+        # Remove trailing periods and spaces
+        num_str = str(num_str).strip().rstrip('.')
+        try:
+            # Convert to float then back to string to normalize
+            num = float(num_str)
+            # If it's a whole number, return as int string
+            if num == int(num):
+                return str(int(num))
+            else:
+                # Otherwise return with consistent decimal places
+                return f"{num:.2f}"
+        except:
+            # If not a number, return cleaned string
+            return num_str.strip()
+    
     @torch.no_grad()
     def evaluate_student_performance(self, question, solution, ground_truth):
         if not ground_truth:
             return 0.0
         
-        solution_clean = solution.strip()
-        ground_truth_clean = ground_truth.strip()
+        # Normalize both for comparison
+        solution_normalized = self._normalize_number(solution)
+        ground_truth_normalized = self._normalize_number(ground_truth)
         
-        if solution_clean == ground_truth_clean:
+        if solution_normalized == ground_truth_normalized:
             return 1.0
         
-        solution_lower = solution_clean.lower()
-        ground_truth_lower = ground_truth_clean.lower()
+        # Also try case-insensitive string comparison for non-numeric answers
+        solution_lower = str(solution).strip().lower()
+        ground_truth_lower = str(ground_truth).strip().lower()
         if solution_lower == ground_truth_lower:
             return 1.0
         
@@ -193,13 +214,25 @@ class AdaptiveTeachingReward(TeacherReward):
                 question, baseline_solution, ground_truth
             )
             
-            teaching_content = teacher_completion
+            import re
+            teaching_match = re.search(r'<teaching>(.*?)</teaching>', teacher_completion, re.DOTALL)
+            if teaching_match:
+                teaching_content = teaching_match.group(1).strip()
+            else:
+                teaching_content = teacher_completion
+            
             teaching_length = len(self.tokenizer.encode(teaching_content))
             
             performance_delta = performance_with_teaching - performance_without_teaching
             
             if performance_delta < 0:
-                reward = -self.degradation_penalty_multiplier * abs(performance_delta)
+                reward = 0.0  # No penalty for degradation, just no reward
+            elif performance_delta == 0:
+                if performance_with_teaching == 1.0:
+                    efficiency_bonus = 100.0 / (100.0 + teaching_length)
+                    reward = 0.5 * (1.0 + self.efficiency_weight * efficiency_bonus)
+                else:
+                    reward = 0.0
             else:
                 efficiency_bonus = 100.0 / (100.0 + teaching_length)
                 reward = performance_delta * (1.0 + self.efficiency_weight * efficiency_bonus)
