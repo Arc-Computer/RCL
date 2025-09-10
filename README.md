@@ -92,11 +92,11 @@ RCL uses a two-phase SFT→RL pipeline managed via [Hydra](https://hydra.cc/) co
 
 **Basic Training:**
 ```sh
-# Without vLLM generation
-scripts/launch.sh ${NUM_OF_GPUS} configs/run/config.yaml ${hydra_args}
+# SFT training
+scripts/launch.sh ${NUM_OF_GPUS} configs/run/teacher_sft.yaml ${hydra_args}
 
-# With vLLM server (for RL training)  
-scripts/launch_with_server.sh ${NUM_VLLM_GPUS} ${NUM_TRAINING_GPUS} configs/run/config.yaml ${hydra_args}
+# RL training with vLLM server
+scripts/launch_with_server.sh ${NUM_VLLM_GPUS} ${NUM_TRAINING_GPUS} configs/run/teacher_rcl.yaml ${hydra_args}
 ```
 
 **Key Parameters:** `degradation_penalty_multiplier`, `dataset_id_or_path`, `model_name_or_path`. Add `offload` for memory optimization. Results save to `results/`.
