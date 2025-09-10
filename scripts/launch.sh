@@ -13,15 +13,15 @@ for arg in "$@"; do
   fi
 done
 
-if [ "$offload_found" = true ]; then
-  config="accelerate_configs/deepspeed_zero3_cpu_offloading.yaml"
-elif [ "$zero1_found" = true ]; then
-  config="accelerate_configs/deepspeed_zero1.yaml"
-else
-  config="accelerate_configs/deepspeed_zero3.yaml"
-fi
-
 nproc=${args[0]}
+
+if [ "$offload_found" = true ]; then
+  config="accelerate/deepspeed_zero3_cpu_offloading.yaml"
+elif [ "$zero1_found" = true ]; then
+  config="accelerate/deepspeed_zero1.yaml"
+else
+  config="accelerate/deepspeed_zero3.yaml"
+fi
 arg2=${args[1]:-"default"}
 
 prefix="configs/run/"

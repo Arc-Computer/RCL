@@ -65,58 +65,6 @@ def to_torch_tensor(data, device='cpu', dtype=None):
     raise TypeError
 
 
-class TeacherDummyLengthReward(TeacherReward):
-
-    def __init__(
-        self,
-        student_model=None,
-        teacher_model=None,
-        tokenizer=None,
-        negative=False,
-    ):
-        self.student_model = student_model
-        self.teacher_model = teacher_model
-        self.tokenizer = tokenizer
-        self.negative = negative
-        self.__name__ = 'TeacherDummyLengthReward'
-
-    def link_with_trainer(
-            self, trainer, student_model, teacher_model, tokenizer,):
-        TeacherReward.link_with_trainer(
-            self=self,
-            trainer=trainer,
-            student_model=student_model,
-            teacher_model=teacher_model,
-            tokenizer=tokenizer,
-        )
-
-    def __call__(
-        self,
-        prompts,
-        completions,
-        student_system_prompts,
-        start_think_teacher_tags,
-        end_think_teacher_tags,
-        start_think_student_tags,
-        end_think_student_tags,
-        start_solution_tags,
-        end_solution_tags,
-        think_prefixes,
-        think_solution_delimiters,
-        questions,
-        solutions,
-        **kwargs,
-    ):
-        rewards = []
-        for completion in completions:
-            encoding = self.tokenizer(completion)
-            reward = len(encoding)
-            if self.negative:
-                reward = -1*reward
-            rewards.append(reward)
-        return rewards
-
-
 class AdaptiveTeachingReward(TeacherReward):
     
     def __init__(
@@ -149,19 +97,14 @@ class AdaptiveTeachingReward(TeacherReward):
         """Normalize number string for comparison"""
         if not num_str:
             return ""
-        # Remove trailing periods and spaces
         num_str = str(num_str).strip().rstrip('.')
         try:
-            # Convert to float then back to string to normalize
             num = float(num_str)
-            # If it's a whole number, return as int string
             if num == int(num):
                 return str(int(num))
             else:
-                # Otherwise return with consistent decimal places
                 return f"{num:.2f}"
         except:
-            # If not a number, return cleaned string
             return num_str.strip()
     
     @torch.no_grad()
@@ -169,14 +112,12 @@ class AdaptiveTeachingReward(TeacherReward):
         if not ground_truth:
             return 0.0
         
-        # Normalize both for comparison
         solution_normalized = self._normalize_number(solution)
         ground_truth_normalized = self._normalize_number(ground_truth)
         
         if solution_normalized == ground_truth_normalized:
             return 1.0
         
-        # Also try case-insensitive string comparison for non-numeric answers
         solution_lower = str(solution).strip().lower()
         ground_truth_lower = str(ground_truth).strip().lower()
         if solution_lower == ground_truth_lower:
@@ -214,7 +155,6 @@ class AdaptiveTeachingReward(TeacherReward):
                 question, baseline_solution, ground_truth
             )
             
-            import re
             teaching_match = re.search(r'<teaching>(.*?)</teaching>', teacher_completion, re.DOTALL)
             if teaching_match:
                 teaching_content = teaching_match.group(1).strip()
@@ -226,7 +166,7 @@ class AdaptiveTeachingReward(TeacherReward):
             performance_delta = performance_with_teaching - performance_without_teaching
             
             if performance_delta < 0:
-                reward = 0.0  # No penalty for degradation, just no reward
+                reward = 0.0
             elif performance_delta == 0:
                 if performance_with_teaching == 1.0:
                     efficiency_bonus = 100.0 / (100.0 + teaching_length)
