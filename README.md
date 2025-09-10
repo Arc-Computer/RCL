@@ -23,7 +23,7 @@ This repository provides **production-ready code for training adaptive teacher m
 RCL's core innovation: diagnostic probing followed by capability-adapted teaching to ensure non-degradation.
 
 <div align="center">
-<img src="public/adaptive-teaching.png" alt="ATLAS Two-Pass Inference Protocol - Diagnostic probing followed by adaptive teaching based on capability assessment" width="800" style="border-radius: 12px;">
+<img src="public/adaptive-teaching.png" alt="ATLAS Two-Pass Inference Protocol - Diagnostic probing followed by adaptive teaching based on capability assessment" width="700" style="border-radius: 12px;">
 </div>
 
 **Pass 1: Diagnostic Probing** - Teacher probes student understanding with minimal interaction (≤50 tokens) to reveal capability level without requiring full solutions.
@@ -37,7 +37,7 @@ RCL's core innovation: diagnostic probing followed by capability-adapted teachin
 **Roadmap**: This adaptive teaching system serves as the foundation for our broader **Compound Intelligence** framework—combining persistent memory with online learning loops for continuously improving agent systems.
 
 <div align="center">
-<img src="public/Training-Pipeline.png" alt="ATLAS Training Pipeline - Two-phase SFT to RL workflow with adaptive teaching protocol" width="800" style="border-radius: 12px;">
+<img src="public/Training-Pipeline.png" alt="ATLAS Training Pipeline - Two-phase SFT to RL workflow with adaptive teaching protocol" width="700" style="border-radius: 12px;">
 </div>
 
 ## Quickstart
