@@ -125,7 +125,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
             teacher_prompts.append(teacher_prompt)
         
         if self.args.use_vllm or self.args.use_ray or self.args.use_vllm_server:
-            teacher_completion_ids = self._generate_with_vllm(teacher_prompts)
+            teacher_completion_ids = self._generate_with_vllm(teacher_prompts, role="teacher")
         else:
             teacher_completion_ids = self._generate_with_model(self.model, teacher_prompts)
         
@@ -218,7 +218,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                             student_solutions, baseline_solutions, 
                             reward_kwargs['ground_truths'], teaching_only_text)
                     ):
-                        if j < 3:  # Only print first 3 to avoid log flooding
+                        if j < 3:
                             print(f"\n[REWARD CHECK] Sample {j}:")
                             print(f"  Ground Truth: {gt}")
                             print(f"  Baseline Solution: {baseline_sol}")
@@ -347,22 +347,16 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         import re
         solutions = []
         for response in responses:
-            # First check for \boxed{} format (handle multiple - take last one)
             boxed_matches = re.findall(r'\\boxed\{([^}]+)\}', response)
             if boxed_matches:
-                # Take the last boxed answer
                 solution_text = boxed_matches[-1].strip()
-                # Clean and normalize the number
                 solution_text = self._normalize_number(solution_text)
                 solutions.append(solution_text)
             else:
-                # Fall back to solution tags (handle multiple tags - take last one)
                 solution_matches = re.findall(r'<solution>(.*?)</solution>', response, re.DOTALL)
                 if solution_matches:
-                    # Get the last solution tag content
                     solution_text = solution_matches[-1].strip()
                     
-                    # Look for "answer is X" patterns
                     answer_patterns = [
                         r'answer is (?:\\boxed\{)?([^.}\n]+)(?:\})?',
                         r'answer:\s*(?:\\boxed\{)?([^.}\n]+)(?:\})?',
@@ -376,7 +370,6 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                     for pattern in answer_patterns:
                         matches = re.findall(pattern, solution_text, re.IGNORECASE)
                         if matches:
-                            # Take the last match
                             found_answer = matches[-1]
                             break
                     
@@ -384,7 +377,6 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                         found_answer = self._normalize_number(found_answer)
                         solutions.append(found_answer)
                     else:
-                        # Last resort: find all numbers and take the last one
                         numbers = re.findall(r'-?\d+(?:\.\d+)?', solution_text)
                         if numbers:
                             solutions.append(self._normalize_number(numbers[-1]))
@@ -398,33 +390,26 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         """Normalize number string for comparison"""
         if not num_str:
             return ""
-        # Remove trailing periods and spaces
         num_str = num_str.strip().rstrip('.')
         try:
-            # Convert to float then back to string to normalize
             num = float(num_str)
-            # If it's a whole number, return as int string
             if num == int(num):
                 return str(int(num))
             else:
-                # Otherwise return with consistent decimal places
                 return f"{num:.2f}"
         except:
-            # If not a number, return cleaned string
             return num_str.strip()
     
     def _check_solution_correctness(self, solution, ground_truth):
         if not solution or not ground_truth:
             return False
         
-        # Normalize both for comparison
         solution_normalized = self._normalize_number(solution)
         ground_truth_normalized = self._normalize_number(ground_truth)
         
         if solution_normalized == ground_truth_normalized:
             return True
         
-        # Also try case-insensitive string comparison for non-numeric answers
         solution_lower = solution.strip().lower()
         ground_truth_lower = ground_truth.strip().lower()
         
@@ -501,7 +486,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
         
         return completion_ids
     
-    def _generate_with_vllm(self, prompts_text, max_tokens=None):
+    def _generate_with_vllm(self, prompts_text, max_tokens=None, role="student"):
         if max_tokens is None:
             max_tokens = self.max_completion_length
         
@@ -523,9 +508,11 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                     max_tokens=max_tokens,
                 )
             
+            clients = self.teacher_vllm_clients if role == "teacher" else self.student_vllm_clients
+            
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 number_of_prompts = len(all_prompts_text)
-                number_of_clients = len(self.student_vllm_clients)
+                number_of_clients = len(clients)
                 base, rem = divmod(number_of_prompts, number_of_clients)
                 
                 chunk_sizes = [
@@ -535,7 +522,7 @@ class TeacherGRPOTrainer(GRPOTrainer, TeacherTrainer):
                 
                 futures = []
                 ss = 0
-                for i, client in enumerate(self.student_vllm_clients):
+                for i, client in enumerate(clients):
                     size = chunk_sizes[i]
                     chunk = all_prompts_text[ss:ss + size]
                     futures.append(

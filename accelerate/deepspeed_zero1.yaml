@@ -4,16 +4,14 @@ deepspeed_config:
   deepspeed_multinode_launcher: standard
   offload_optimizer_device: none
   offload_param_device: none
-  zero3_init_flag: true
-  zero3_save_16bit_model: true
-  zero_stage: 3
+  zero_stage: 1
 distributed_type: DEEPSPEED
 downcast_bf16: "no"
 machine_rank: 0
 main_training_function: main
 mixed_precision: bf16
 num_machines: 1
-num_processes: 4
+num_processes: 1
 rdzv_backend: static
 same_network: true
 tpu_env: []
