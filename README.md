@@ -6,7 +6,7 @@
 [![ATLAS-8B-Instruct](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ATLAS--8B--Instruct-blue)](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct)
 [![Arc-ATLAS-Teach Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-Arc--ATLAS--Teach-green)](https://huggingface.co/datasets/Arc-Intelligence/Arc-ATLAS-Teach-v0)
 
-<img src="public/ATLAS.png" alt="ATLAS - Adaptive Teaching and Learning Alignment System" width="800">
+<img src="public/ATLAS.png" alt="ATLAS - Adaptive Teaching and Learning Alignment System" width="1000">
 
 </div>
 
