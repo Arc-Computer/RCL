@@ -143,7 +143,7 @@ Remember: Your goal is to improve performance without degradation. Be conservati
 ```
 
 ### Reference
-`custom_data/reasoning_datasets_info.py:50-200`
+`custom_data/datasets_info.py:50-200`
 
 ---
 
@@ -185,7 +185,7 @@ def grab_text_between_tag(
 ```
 
 ### Reference
-`custom_data/reasoning_datasets_info.py:10-45`
+`custom_data/datasets_info.py:10-45`
 
 ---
 
@@ -194,7 +194,7 @@ def grab_text_between_tag(
 ### Adding a New Dataset Configuration
 
 ```python
-from custom_data.reasoning_datasets_info import DATA_CONFIGS, ReasoningData
+from custom_data.datasets_info import DATA_CONFIGS, DataConfig
 
 # Define extraction function
 def extract_my_dataset(line):

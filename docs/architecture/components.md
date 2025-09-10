@@ -14,7 +14,7 @@
 ## Data
 
 - `custom_data/sft_data.py`: SFT dataset loader and chat-template formatter. Special handling for `Arc-Intelligence/Arc-ATLAS-Teach-v0`.
-- `custom_data/reasoning_datasets_info.py`: Tagging, templates, and `DATA_CONFIGS` mapping; adaptive teaching system prompt.
+- `custom_data/datasets_info.py`: Tagging, templates, and `DATA_CONFIGS` mapping; adaptive teaching system prompt.
 - `custom_data/utils.py`: collators and helpers for masking/completion-only training.
 
 ## vLLM Integration

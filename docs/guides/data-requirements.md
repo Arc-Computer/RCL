@@ -23,11 +23,11 @@ When `dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0`, SFT loads `traini
 
 - `problem_text`, `student_approach`, `teacher_diagnosis`, `teacher_teaching`
 
-See `custom_data/sft_data.py` for construction and `ADAPTIVE_TEACHING_SYSTEM_PROMPT` in `custom_data/reasoning_datasets_info.py`.
+See `custom_data/sft_data.py` for construction and `ADAPTIVE_TEACHING_SYSTEM_PROMPT` in `custom_data/datasets_info.py`.
 
 ## DATA_CONFIGS Customization
 
-`custom_data/reasoning_datasets_info.py` defines `DATA_CONFIGS`, mapping dataset IDs to tag format and system prompts.
+`custom_data/datasets_info.py` defines `DATA_CONFIGS`, mapping dataset IDs to tag format and system prompts.
 
 Steps to support a custom dataset:
 

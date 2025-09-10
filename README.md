@@ -10,18 +10,19 @@
 
 </div>
 
-This repository implements **Reinforced Continual Learning (RCL)**, a practical system for training teacher models that adapt to student capability without degrading performance. It is the production track of our broader vision:
+This repository provides **production-ready code for training adaptive teacher models** that diagnose student capability and provide tailored guidance without performance degradation. Built on GRPO (Group Relative Policy Optimization) with distributed vLLM integration.
 
-- **Compound Intelligence (Vision)**: A unified framework that combines persistent memory with online and offline RL so agents learn new skills from experience, boosting performance while reducing compute costs.
-- **ATLAS (Shipped Today)**: **A**daptive **T**eaching and **L**earning **A**lignment **S**ystem — a teacher model family and inference pipeline that diagnoses student capability and adapts teaching accordingly, rather than just demonstrating reasoning. This repo ships ATLAS training (SFT → RL/GRPO), vLLM server integration, and runnable configs. The Arc‑ATLAS datasets support supervision and evaluation of adaptive teaching.
+**What's included:**
+- **ATLAS Training Pipeline**: Complete SFT → RL workflow with GRPO optimization
+- **Adaptive Teaching Protocol**: Two-pass diagnostic probing + conditional teaching
+- **Production Integration**: vLLM server architecture with distributed training support  
+- **Pre-trained Models**: ATLAS-8B teacher models and Arc-ATLAS teaching datasets
 
-## Why RCL Matters
+**Technical Innovation**: Instead of static demonstrations, ATLAS models first probe student understanding (≤50 tokens), then adapt their teaching approach—providing minimal hints for capable students and comprehensive support for struggling ones. This prevents the common problem of helpful models accidentally degrading strong student performance.
 
-RCL builds systems that compound experience into permanent capability improvements. Agents develop genuine expertise through verified learning loops.
+**Roadmap**: This adaptive teaching system serves as the foundation for our broader **Compound Intelligence** framework—combining persistent memory with online learning loops for continuously improving agent systems.
 
-[Diagram Placeholder: Compound Intelligence framework — unified architecture combining persistent memory with offline RL (ATLAS) and online learning loops]
-
-We provide efficient code to train your own ATLAS teachers following our adaptive teaching recipe, which is easily extensible for custom datasets and base models. ATLAS enables non-degradation teaching through adaptive capability diagnosis and tailored guidance delivery via production-ready vLLM server integration.
+[Diagram Placeholder: ATLAS system architecture — SFT→RL training pipeline with vLLM server integration and adaptive teaching protocol]
 
 ## Quickstart
 
@@ -147,7 +148,7 @@ RCL introduces metrics to measure learning itself:
 - `configs/`: Modular Hydra configurations (run recipes, data, models, trainers)
 - `accelerate_configs/`: DeepSpeed configurations (zero1, zero3, cpu offloading)
 - `trainers/`: Core training logic including GRPO, teacher rewards, vLLM integration
-- `custom_data/`: Dataset handlers and formatting (see `reasoning_datasets_info.py`)
+- `custom_data/`: Dataset handlers and formatting (see `datasets_info.py`)
 - `scripts/`: Installation and utility scripts
 - `launch.sh`, `launch_with_server.sh`: Shell entry points for single and distributed training
 
@@ -168,6 +169,8 @@ For comprehensive troubleshooting, installation guides, and deployment instructi
 **Stable (Offline RL)**: ATLAS SFT+RL training, vLLM server integration, Hydra configuration system
 
 **[Unverified/Roadmap] (Online + Persistent Memory)**: Full Compound Intelligence framework with persistent organizational memory, online learning loops, and cross-agent knowledge transfer. ATLAS serves as the foundational outer loop training component for continuously learning agent systems.
+
+[Diagram Placeholder: Compound Intelligence framework — unified architecture combining persistent memory with offline RL (ATLAS) and online learning loops]
 
 ## Performance Results
 
