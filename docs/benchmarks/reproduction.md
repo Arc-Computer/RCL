@@ -8,7 +8,7 @@ To reproduce the performance results from the README:
 ### Phase 1: SFT Warmup
 
 ```bash
-./launch.sh 4 configs/run/teacher_sft.yaml \
+scripts/launch.sh 4 configs/run/teacher_sft.yaml \
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
   output_dir=results/pre_rl_model
 ```
@@ -16,7 +16,7 @@ To reproduce the performance results from the README:
 ### Phase 2: RL Training
 
 ```bash
-./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   model_name_or_path=results/pre_rl_model \
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
   num_generations=32

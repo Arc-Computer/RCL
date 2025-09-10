@@ -28,7 +28,7 @@ Verify that adaptive teaching improves student outcomes without degrading perfor
 
 ```bash
 # Run complete evaluation with logging
-./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   model_name_or_path=results/pre_rl_model \
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
   eval_steps=50 log_completions=true save_completions_probability=0.1
@@ -38,7 +38,7 @@ Verify that adaptive teaching improves student outcomes without degrading perfor
 
 ```bash
 # Minimal evaluation for development
-./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml \
   report_to=null max_steps=4 eval_steps=1
 ```
 

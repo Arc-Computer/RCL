@@ -6,7 +6,7 @@ GRPO optimizes the teacher with an asymmetric reward that discourages degradatio
 ## Command
 
 ```bash
-./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   model_name_or_path=results/pre_rl_model \
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
   num_generations=64 generation_aggregation_steps=256 \

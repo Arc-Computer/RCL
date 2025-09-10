@@ -10,7 +10,7 @@ During RL training, vLLM servers provide high-throughput generation:
 ```bash
 # Launch training with integrated vLLM server
 # Syntax: <vllm_gpus> <training_gpus> <config> [overrides]
-./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   model_name_or_path=results/pre_rl_model
 ```
 

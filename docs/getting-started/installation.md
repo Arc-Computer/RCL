@@ -1,7 +1,7 @@
 
 # Installation
 
-This project targets Python 3.11, PyTorch 2.6.0, and vLLM 0.8.3. We recommend Conda or uv for environment management and H100-class GPUs for best performance (4×H100).
+This project targets Python 3.11/3.12, PyTorch 2.6.0, and vLLM 0.8.3. We recommend Conda or uv for environment management and H100-class GPUs for best performance (4×H100).
 
 ## Prerequisites
 
@@ -13,8 +13,14 @@ This project targets Python 3.11, PyTorch 2.6.0, and vLLM 0.8.3. We recommend Co
 
 Option A: project script (recommended)
 
+**Python 3.11:**
 ```bash
-bash scripts/install_08.sh
+bash scripts/install_py311.sh
+```
+
+**Python 3.12:**
+```bash
+bash scripts/install_py312.sh
 ```
 
 Option B: manual installation
@@ -24,7 +30,7 @@ python -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/
 python -m pip install vllm==0.8.3 tensorboard
 python -m pip install flash-attn --no-build-isolation
 python -m pip install flashinfer-python -i https://flashinfer.ai/whl/cu124/torch2.6/
-python -m pip install --upgrade -r requirements_08.txt
+python -m pip install --upgrade -r requirements-py311.txt  # or requirements-py312.txt
 ```
 
 ## Authentication and Tracking

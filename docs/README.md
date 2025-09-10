@@ -17,12 +17,12 @@ The system uses a diagnostic probing protocol where teachers first assess studen
 
 **SFT Training**:
 ```bash
-./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
+scripts/launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
 ```
 
 **RL Training with vLLM**:
 ```bash
-./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
+scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
 
 ## Architecture
@@ -104,7 +104,7 @@ RCL uses Hydra for modular configuration management:
 
 Override parameters from command line:
 ```bash
-./launch.sh 8 configs/run/teacher_sft.yaml learning_rate=5e-6 output_dir=custom/path
+scripts/launch.sh 8 configs/run/teacher_sft.yaml learning_rate=5e-6 output_dir=custom/path
 ```
 
 ## Performance Metrics

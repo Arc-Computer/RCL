@@ -15,7 +15,7 @@ Before running quickstart commands, ensure you have:
 Test supervised fine-tuning warmup phase:
 
 ```bash
-./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
+scripts/launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1
 ```
 
 **Expected output**: Initialization logs, dataset loading, and 1 training epoch completing successfully.
@@ -25,7 +25,7 @@ Test supervised fine-tuning warmup phase:
 Test reinforcement learning with vLLM server integration:
 
 ```bash
-./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
+scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
 
 **Expected output**: vLLM server startup, GRPO training loop with reward computation, and successful completion.
@@ -40,12 +40,12 @@ Test reinforcement learning with vLLM server integration:
 
 **GPU Memory Issues**: Add `offload` flag:
 ```bash
-./launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1 offload
+scripts/launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model=false num_train_epochs=1 offload
 ```
 
 **Port Conflicts**: Override vLLM port:
 ```bash
-./launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1 vllm_port=8766
+scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1 vllm_port=8766
 ```
 
 **Authentication Errors**: Ensure HuggingFace login:

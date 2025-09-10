@@ -6,14 +6,14 @@ Hydra composes configs from `configs/`:
 - `configs/train.yaml`: global defaults (logging, W&B, output dirs, seed)
 - `configs/run/*.yaml`: runnable recipes (e.g., `teacher_sft.yaml`, `teacher_rcl.yaml`)
 - `configs/{model,data,trainer}/*.yaml`: reusable building blocks
-- `accelerate_configs/*.yaml`: DeepSpeed ZeRO-1/3 and CPU offload
+- `accelerate/*.yaml`: DeepSpeed ZeRO-1/3 and CPU offload
 
 ## Composition and Overrides
 
 Example:
 
 ```bash
-./launch.sh 4 configs/run/teacher_sft.yaml \
+scripts/launch.sh 4 configs/run/teacher_sft.yaml \
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
   num_train_epochs=3
 ```
@@ -24,9 +24,9 @@ Hydra overrides are passed as `key=value`. `train.py` infers `gradient_accumulat
 
 `launch.sh` selects the Accelerate config:
 
-- default: `accelerate_configs/deepspeed_zero3.yaml`
-- `zero1`: `accelerate_configs/deepspeed_zero1.yaml`
-- `offload`: `accelerate_configs/deepspeed_zero3_cpu_offloading.yaml`
+- default: `accelerate/deepspeed_zero3.yaml`
+- `zero1`: `accelerate/deepspeed_zero1.yaml`
+- `offload`: `accelerate/deepspeed_zero3_cpu_offloading.yaml`
 
 Use `offload` for constrained GPUs; expect slower training.
 

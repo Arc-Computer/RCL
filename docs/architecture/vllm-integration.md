@@ -7,7 +7,7 @@ RCL can use vLLM for high-throughput generation during RL.
 
 ```bash
 # Syntax: <vllm_gpus> <training_gpus> <run_yaml> [overrides]
-./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   model_name_or_path=results/pre_rl_model
 ```
 

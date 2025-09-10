@@ -13,7 +13,7 @@ Complete walkthrough of the RCL two-phase training pipeline: SFT warmup followed
 Train the base model with supervised fine-tuning on reasoning data:
 
 ```bash
-./launch.sh 8 configs/run/teacher_sft.yaml \
+scripts/launch.sh 8 configs/run/teacher_sft.yaml \
   output_dir=path/to/save/pre_rl_model
 ```
 
@@ -26,12 +26,12 @@ Train the base model with supervised fine-tuning on reasoning data:
 **Memory optimization** (if needed):
 ```bash
 # Use CPU offloading for memory-constrained setups
-./launch.sh 8 configs/run/teacher_sft.yaml \
+scripts/launch.sh 8 configs/run/teacher_sft.yaml \
   output_dir=path/to/save/pre_rl_model \
   offload
 
 # Or use ZeRO-1 for less aggressive optimization
-./launch.sh 8 configs/run/teacher_sft.yaml \
+scripts/launch.sh 8 configs/run/teacher_sft.yaml \
   output_dir=path/to/save/pre_rl_model \
   zero1
 ```
@@ -41,7 +41,7 @@ Train the base model with supervised fine-tuning on reasoning data:
 Train adaptive teaching capabilities using GRPO with vLLM server:
 
 ```bash
-./launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model
 ```
 
@@ -53,7 +53,7 @@ Train adaptive teaching capabilities using GRPO with vLLM server:
 
 **Training configuration**:
 ```bash
-./launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model \
   num_generations=32 \
   temperature=0.7 \
@@ -117,13 +117,13 @@ tail -f results/latest_run/vllm_server.log
 ### Training Problems
 ```bash
 # Reduce memory usage
-./launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model \
   per_device_train_batch_size=1 \
   offload
 
 # Use alternative port if conflicts
-./launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model \
   vllm_port=8766
 ```

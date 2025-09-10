@@ -12,7 +12,7 @@ RCL uses Accelerate + DeepSpeed for efficient multi-GPU training.
 Example:
 
 ```bash
-./launch.sh 4 configs/run/teacher_sft.yaml offload
+scripts/launch.sh 4 configs/run/teacher_sft.yaml offload
 ```
 
 ## Memory and Throughput

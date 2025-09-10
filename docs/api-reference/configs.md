@@ -191,16 +191,16 @@ Override any configuration parameter from command line:
 
 ```bash
 # Override single parameter
-./launch.sh 8 configs/run/teacher_sft.yaml learning_rate=5e-6
+scripts/launch.sh 8 configs/run/teacher_sft.yaml learning_rate=5e-6
 
 # Override multiple parameters
-./launch_with_server.sh 2 2 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 2 2 configs/run/teacher_rcl.yaml \
   dataset_id_or_path=my/dataset \
   temperature=0.8 \
   num_generations=16
 
 # Use different model
-./launch.sh 4 configs/run/teacher_sft.yaml \
+scripts/launch.sh 4 configs/run/teacher_sft.yaml \
   model=llama3_70b \
   per_device_train_batch_size=1
 ```
@@ -295,7 +295,7 @@ export CUDA_VISIBLE_DEVICES=0,1,2,3
 
 ## DeepSpeed Configuration
 
-Located in `accelerate_configs/` directory:
+Located in `accelerate/` directory:
 
 ### zero1.yaml (Stage 1 Optimization)
 

@@ -6,11 +6,11 @@
 Run minimal steps to validate changes (see AGENTS.md):
 
 ```bash
-./launch.sh 1 configs/run/teacher_sft.yaml \
+scripts/launch.sh 1 configs/run/teacher_sft.yaml \
   num_train_epochs=1 train_batch_size=16 per_device_train_batch_size=1 \
   save_final_model=false report_to=null
 
-./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   max_steps=4 eval_steps=1 save_final_model=false report_to=null
 ```
 
