@@ -1,4 +1,4 @@
-# Reinforced Continual Learning (RCL) — Compound Intelligence for LLM Agents
+# ATLAS: Adaptive Teaching and Learning Alignment System for Agents
 
 <div align="center">
 
