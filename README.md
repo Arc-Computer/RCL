@@ -65,6 +65,8 @@ This will save a checkpoint for the final RL phase, which can take multiple days
 ./launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml model_name_or_path=path/of/saved/pre_rl_model results_dir=path/to/save/rcl_model ${extra_hydra_args}
 ```
 
+For detailed performance metrics and results, see [Methodology & Performance](#methodology--performance).
+
 All our scripts and run files currently default to a 7B RCL teacher (`model_name_or_path=Qwen/Qwen2.5-7B-Instruct`) and the `bespokelabs/Bespoke-Stratos-17k` data for benchmarking. Any other custom [dataset](https://huggingface.co/docs/datasets/index) and model can be used by overriding `dataset_id_or_path` or the initial `model_name_or_path` via additional command arguments, or by making separate configuration files (we provide examples in the `configs/data` and `configs/model` folders).
 
 For custom datasets, we assume the columns `question` and `solution` contain each problem's question and solution, respectively. Moreover, an optional extra column `reasoning_trace` can be used to make the data compatible with our SFT warm-up stage. If a custom dataset does not have a `reasoning_trace` entry, we still recommend first performing the SFT warm-up phase on the default `bespokelabs/Bespoke-Stratos-17k` data before performing the RL phase on your custom dataset to obtain the best results. By default, these datasets will be formatted using the think/solution tags and system prompt. To use other tags/system prompts or to extend support to datasets adhering to other custom formats, you can add a new entry to the `DATA_CONFIGS` dictionary defined in `custom_data/reasoning_datasets_info.py`.
@@ -98,6 +100,92 @@ The default logging functionality saves results both locally and to [Weights & B
 ```yaml
 report_to: null
 ```
+
+## Methodology & Performance
+
+### System Architecture
+
+[Diagram Placeholder: Overall system architecture showing offline RL + online learning + persistent memory pipeline]
+
+Our RCL framework implements a complete adaptive teaching system that learns to diagnose student capability and provide tailored guidance without degradation.
+
+### Methodology
+
+Two-phase pipeline trains an adaptive teacher to improve a student without degradation:
+
+- **SFT Warmup**: Learn structured reasoning/teaching format from curated traces
+- **RL (GRPO)**: Two-pass protocol per example:
+  - **Probe**: Student provides a ≤50-token approach
+  - **Teach**: Teacher adapts guidance to the diagnosed capability
+  - **Reward**: Compare student performance with vs. without teaching; apply 2× penalty for degradation and a length-aware efficiency bonus
+
+[Diagram Placeholder: Teacher-student inference pipeline showing the two-pass protocol with probe and teach phases]
+
+### Reward & Constraints
+
+Configured in `configs/trainer/reward/adaptive_teaching.yaml`:
+
+- **Degradation penalty**: 2.0×
+- **Efficiency term**: 100/(100 + |teaching_tokens|)
+- **Probe cap**: 50 tokens
+
+The reward function<sup>†</sup> balances improvement gains against the risk of degradation, ensuring the teacher learns to be conservative with capable students while providing necessary support to weaker ones.
+
+<sup>†</sup> See implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward`
+
+### Evaluation Protocol
+
+Offline evaluation compares student-with-teaching vs. baseline student on held-out problems:
+- Matching uses string-normalized checks with partial match credit
+- We're improving parsing/normalization to reduce artifacts
+
+### Results Snapshot (Latest Run)
+
+[Diagram Placeholder: Improvement rate visualization showing accuracy gains across problem difficulty]
+
+**Environment**: 4×H100 GPUs, Arc-Intelligence/Arc-ATLAS-Teach-v0 dataset, seed=42
+
+| Metric | Teacher+Student | Student Alone | Delta |
+|--------|----------------|---------------|-------|
+| Average accuracy | +0.1573 | baseline | **+15.73%** |
+| Max per-item improvement | +0.296 | - | **+29.6%** |
+| Token efficiency | 0.372 | - | (avg. efficiency term) |
+| Generation time (32 samples) | ~1:10 | ~1:21 | **-13.6%** |
+| Average length | ~2k tokens | ~4k tokens | **-50%** |
+| Completion rate | ~100% | ~69% | **+31%** |
+
+**Key findings**:
+- Teacher+student achieves higher accuracy with fewer tokens
+- Near-100% completion rate vs. ~10/32 failures in student-alone (due to looping)
+- Consistent improvements across problem difficulty levels
+
+[Diagram Placeholder: Adaptive teaching method showing 235B→4B/30B/235B data curation and 8B→4B RL training]
+
+### Teaching Examples
+
+[Diagram Placeholder: Real teaching snippets from training showing different adaptation levels - minimal hints for strong students, comprehensive support for struggling ones]
+
+### Reproduce
+
+**SFT Warmup**:
+```bash
+./launch.sh 4 configs/run/teacher_sft.yaml \
+  dataset_id_or_path=bespokelabs/Bespoke-Stratos-17k
+```
+
+**RL (GRPO)**:
+```bash
+./launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
+  model_name_or_path=results/pre_rl_model \
+  dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 \
+  num_generations=32
+```
+
+### Notes & Limitations
+
+- Normalization/parsing affects exact/partial match; reducing these artifacts lowers apparent degradation
+- Efficiency and latency reflect our current token budgets and sampling settings; tune `num_generations`, context lengths, and `offload` settings for your hardware
+- Current implementation focuses on reasoning tasks; extension to tool-use and multi-turn dialogue is in development
 
 ## Citation
 

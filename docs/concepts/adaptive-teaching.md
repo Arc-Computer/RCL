@@ -30,3 +30,9 @@ max_probe_tokens: 50
 
 Implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward` computes performance deltas vs. a baseline (no teaching), applies a 2× penalty for degradation, and adds a length-aware efficiency bonus.
 
+## See Also
+
+- [Reward Design](reward-design.md) - Details on asymmetric rewards and efficiency bonuses
+- [RL Training](rl-training.md) - GRPO implementation with adaptive teaching
+- [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
+

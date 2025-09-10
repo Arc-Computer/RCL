@@ -34,3 +34,10 @@ GRPO optimizes the teacher with an asymmetric reward that discourages degradatio
 
 See `trainers/teacher_trainers.py` and `configs/trainer/reward/adaptive_teaching.yaml`.
 
+## See Also
+
+- [Adaptive Teaching](../concepts/adaptive-teaching.md) - Core diagnostic and teaching protocol
+- [Reward Design](../concepts/reward-design.md) - Asymmetric reward structure
+- [Training Pipeline](training-pipeline.md) - Full SFT → RL workflow
+- [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
+

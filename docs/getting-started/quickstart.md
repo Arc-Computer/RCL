@@ -175,3 +175,7 @@ bash scripts/quickstart.sh
 report_to=null save_final_model=false logging_steps=999
 ```
 
+---
+
+**Next:** [Testing Your Installation](testing-installation.md) → [First Experiment](first-experiment.md)
+

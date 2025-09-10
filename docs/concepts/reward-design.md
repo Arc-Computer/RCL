@@ -22,6 +22,12 @@ Reference implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward`.
 
 Notes:
 
-- The baseline is the student’s solution without teacher guidance.
+- The baseline is the student's solution without teacher guidance.
 - Reward combines delta vs. baseline and a token-length-based efficiency term.
+
+## See Also
+
+- [Adaptive Teaching](adaptive-teaching.md) - Two-pass diagnostic and teaching protocol
+- [RL Training](rl-training.md) - How rewards guide GRPO optimization
+- [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
 

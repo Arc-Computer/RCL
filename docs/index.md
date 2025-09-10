@@ -142,12 +142,20 @@ bash scripts/install_08.sh
 
 ## Documentation Map
 
-- **[Getting Started](getting-started/)** - Installation, quickstart, personas
+- **[Getting Started](getting-started/)** - Installation, quickstart, testing
 - **[Concepts](concepts/)** - Adaptive teaching, rewards, protocols
 - **[Architecture](architecture/)** - Components, configs, vLLM
 - **[Guides](guides/)** - Training pipeline, datasets, distributed
 - **[API Reference](api-reference/)** - Trainers, configs, utilities
 - **[Troubleshooting](troubleshooting/)** - Common issues and solutions
+- **[Methodology & Performance](../README.md#methodology--performance)** - Results, metrics, and reproducibility
+
+## Contributing
+
+- Commits: short, imperative subject (≤72 chars); scope optional (e.g., “Add RL dataset configs”)
+- Pull Requests: include purpose, key config diffs, sample command(s), expected GPU counts, and a brief log/metric snippet
+- Code Style: PEP 8, 4‑space indentation, `snake_case` for files/functions, `PascalCase` for classes; keep Hydra overrides minimal and documented
+- Security: do not commit tokens, checkpoints, or large logs; follow Installation → Security Best Practices
 
 ## Learn More
 
@@ -158,4 +166,3 @@ bash scripts/install_08.sh
 ---
 
 *The next decade belongs to systems that learn with you. Start compounding today.*
-

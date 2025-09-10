@@ -40,10 +40,16 @@ export WANDB_API_KEY=...  # if using Weights & Biases
 
 `train.py` sets `HF_HUB_ENABLE_HF_TRANSFER=1` to speed up downloads. To disable W&B, set `report_to: null` in configs.
 
+## Security Best Practices
+
+- Never commit tokens, `.env` files, checkpoints, or large logs
+- Keep `results/`, `logs/`, and `wandb/` out of version control (already in `.gitignore`)
+- Use environment variables for secrets (e.g., `HF_TOKEN`, `WANDB_API_KEY`), not config files
+- Restrict dataset access to least privilege; log out with `huggingface-cli logout` on shared machines
+
 ## Verify
 
 ```bash
 python -c "import torch, transformers, datasets; print(torch.cuda.is_available())"
 accelerate --version
 ```
-
