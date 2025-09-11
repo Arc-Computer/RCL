@@ -62,6 +62,44 @@ class VLLMClient:
             self.close_communicator
         )
 
+    @staticmethod
+    def wait_for_many(
+        hosts_ports: list[tuple[str, int]], total_timeout: float = 60.0, retry_interval: float = 2.0
+    ) -> None:
+        """Block until all provided (host, port) pairs report healthy or timeout.
+
+        Example:
+            VLLMClient.wait_for_many([
+                ("0.0.0.0", 8000), ("0.0.0.0", 8001)
+            ], total_timeout=120.0)
+        """
+        if not is_requests_available():
+            raise ImportError(
+                "requests is not installed. Please install it with `pip install requests`."
+            )
+        import requests
+
+        start_time = time.time()
+        remaining = set(hosts_ports)
+        while remaining:
+            done: list[tuple[str, int]] = []
+            for (h, p) in list(remaining):
+                try:
+                    r = requests.get(f"http://{h}:{p}/health/")
+                    if r.status_code == 200:
+                        done.append((h, p))
+                except requests.exceptions.RequestException:
+                    pass
+            for hp in done:
+                remaining.discard(hp)
+            if not remaining:
+                return None
+            if time.time() - start_time >= total_timeout:
+                raise ConnectionError(
+                    f"vLLM servers not reachable within {total_timeout}s: {sorted(list(remaining))}"
+                )
+            time.sleep(retry_interval)
+
     def check_server(
         self, total_timeout: float = 0.0, retry_interval: float = 2.0
     ):

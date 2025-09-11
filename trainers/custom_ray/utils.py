@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any, Optional, Union
 
@@ -88,3 +89,23 @@ def get_physical_gpu_id():
     device = torch.cuda.current_device()
     props = torch.cuda.get_device_properties(device)
     return str(props.uuid)
+
+
+@contextmanager
+def cuda_visibility_context(visible_devices_value: str):
+    """Temporarily set CUDA_VISIBLE_DEVICES and restore after use.
+
+    Example:
+        with cuda_visibility_context("0"):
+            ...
+    """
+    key = "CUDA_VISIBLE_DEVICES"
+    original = os.environ.get(key)
+    try:
+        os.environ[key] = visible_devices_value
+        yield
+    finally:
+        if original is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = original
