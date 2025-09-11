@@ -63,6 +63,21 @@ The protocol operates in two phases. First, diagnostic probing allows the teache
 
 ---
 
+## Installation
+
+Conda is recommended for environment management. The repository and models have been validated with Python 3.11 and Python 3.12. Use the appropriate installation script to replicate the environment:
+
+**Python 3.11:**
+```sh
+bash scripts/install_py311.sh
+```
+
+**Python 3.12:**
+```sh
+bash scripts/install_py312.sh
+```
+---
+
 ## Quickstart
 
 Run minimal smoke tests on a single GPU to validate your setup.
@@ -82,31 +97,6 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 The `teacher_rcl.yaml` configuration uses `use_vllm_server: true` by default, while `launch_with_server.sh` handles `vllm_host` setup and `vllm_port` validation. Adding `offload` to commands reduces GPU memory usage.
 
 ---
-
-## Installation
-
-Conda is recommended for environment management. The repository and models have been validated with Python 3.11 and Python 3.12. Use the appropriate installation script to replicate the environment:
-
-**Python 3.11:**
-```sh
-scripts/install_py311.sh
-```
-
-**Python 3.12:**
-```sh
-scripts/install_py312.sh
-```
-
-Otherwise, you can install all our dependencies in your own custom environment:
-
-```sh
-python -m pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
-python -m pip install vllm==0.8.3 tensorboard
-python -m pip install flash-attn --no-build-isolation
-python -m pip install flashinfer-python -i https://flashinfer.ai/whl/cu124/torch2.6/
-
-python -m pip install --upgrade -r requirements-py311.txt  # or requirements-py312.txt
-```
 
 ## Training Pipeline
 
@@ -141,13 +131,13 @@ The system defaults to the [ATLAS-8B-Thinking](https://huggingface.co/Arc-Intell
 
 See [docs/concepts/adaptive-teaching.md](docs/concepts/) for detailed protocol and reward design.
 
-Access to models and datasets requires `huggingface-cli login`. W&B logging can be disabled by setting `report_to: null`. Setup details are available in [docs/getting-started/](docs/getting-started/).
+Access to models and datasets requires `hf auth login`. W&B logging can be disabled by setting `report_to: null`. Setup details are available in [docs/getting-started/](docs/getting-started/).
 
 ## Core Concepts
 
 **Teacher-Student Architecture**: ATLAS trains teacher models that can assess any student model's capability and provide conditional guidance. Teachers learn through GRPO optimization to maximize student performance improvements while maintaining reliability.
 
-**Diagnostic Probing**: Teachers assess student understanding through minimal interaction (≤50 tokens) before providing guidance, enabling capability-adapted teaching without requiring full problem solutions.
+**Diagnostic Probing**: Teachers assess student understanding through minimal interaction before providing guidance, enabling capability-adapted teaching without requiring full problem solutions.
 
 **Adaptive Teaching**: Based on diagnosed capability, teachers provide targeted instruction - minimal intervention for strong students to prevent degradation, comprehensive scaffolding for weak students to maximize learning gains.
 
