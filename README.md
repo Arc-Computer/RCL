@@ -18,7 +18,7 @@
 
 ---
 
-ATLAS delivers consistent **15.7% accuracy improvements** and **31% completion gains** across any base model through diagnostic probing and conditional teaching. The framework works with **any student model (open or closed source)** — train your own teacher or use our pre-trained **ATLAS-8B models**.
+ATLAS delivers consistent **15.7% accuracy improvements** and **31% completion gains** across any base model through diagnostic probing and conditional teaching. The framework works with **any student model (open or closed source)** — train your own teacher or use our pre-trained **[ATLAS-8B-Thinking](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Thinking)** and **[ATLAS-8B-Instruct](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct)** models.
 
 ## Student Performance Results
 
@@ -28,6 +28,8 @@ Our evaluation demonstrates that ATLAS-trained teachers consistently improve stu
 <img src="public/performance-chart.png" alt="Student Performance: ATLAS Teacher+Student vs Student Alone - showing accuracy gains and completion rates" width="700" style="border-radius: 12px;">
 </div>
 
+<div align="center">
+
 | Metric | Teacher+Student | Student Alone | Improvement |
 |--------|----------------|---------------|-------------|
 | **Average accuracy** | +15.7% | baseline | **+15.7%** |
@@ -36,7 +38,9 @@ Our evaluation demonstrates that ATLAS-trained teachers consistently improve stu
 | **Response efficiency** | ~2k tokens | ~4k tokens | **-50%** |
 | **Generation time** | ~1:10 | ~1:21 | **-13.6%** |
 
-The system achieves a 97% non-degradation rate with consistent improvements across problem difficulty levels. The framework includes the complete ATLAS training pipeline with SFT to RL workflow using GRPO optimization, the adaptive teaching protocol implementing two-pass diagnostic probing with conditional teaching, production-ready vLLM server architecture with distributed training support, and pre-trained ATLAS-8B teacher models with Arc-ATLAS teaching datasets.
+</div>
+
+The system achieves a 97% non-degradation rate with consistent improvements across problem difficulty levels. The framework includes the complete ATLAS training pipeline with SFT to RL workflow using GRPO optimization, the adaptive teaching protocol implementing two-pass diagnostic probing with conditional teaching, production-ready vLLM server architecture with distributed training support, and pre-trained [ATLAS-8B-Thinking](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Thinking) and [ATLAS-8B-Instruct](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct) teacher models with Arc-ATLAS teaching datasets.
 
 ---
 
@@ -134,7 +138,7 @@ scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model
 ```
 
-The system defaults to the 8B teacher model with `Arc-Intelligence/Arc-ATLAS-Teach-v0` for both SFT and RL phases. Custom datasets require `question` and `solution` columns. Detailed formatting specifications are available in [docs/guides/data-requirements.md](docs/guides/).
+The system defaults to the [ATLAS-8B-Thinking](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Thinking) teacher model with `Arc-Intelligence/Arc-ATLAS-Teach-v0` for both SFT and RL phases. Custom datasets require `question` and `solution` columns. Detailed formatting specifications are available in [docs/guides/data-requirements.md](docs/guides/).
 
 See [docs/concepts/adaptive-teaching.md](docs/concepts/) for detailed protocol and reward design.
 
