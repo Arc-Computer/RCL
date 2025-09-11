@@ -20,6 +20,8 @@
 
 ATLAS delivers consistent **15.7% accuracy improvements** and **31% completion gains** across any base model through diagnostic probing and conditional teaching. The framework works with **any student model (open or closed source)** — train your own teacher or use our pre-trained **[ATLAS-8B-Thinking](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Thinking)** and **[ATLAS-8B-Instruct](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct)** models.
 
+📄 **[Read the ATLAS Technical Report](docs/ATLAS-Technical-Report.pdf)** for comprehensive methodology, ablation studies, and detailed performance analysis.
+
 ## Student Performance Results
 
 Our evaluation demonstrates that ATLAS-trained teachers consistently improve student model performance across multiple metrics with verified reliability.
