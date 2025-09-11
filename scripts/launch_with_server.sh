@@ -108,6 +108,14 @@ for ((i=0; i<num_gpus; i++)); do
   bash -c "$cmd" 2>&1 | tee -a job_${PBS_JOBID}.log &
 done
 
+# If single GPU, also launch student model on same GPU with different port
+if [[ $num_gpus -eq 1 ]]; then
+  echo "Single GPU detected, launching student model on port $((base_port + 1))..."
+  cmd="CUDA_VISIBLE_DEVICES=0 python trainers/vllm_server.py \
+--model=$student_model --port=$((base_port + 1)) $prefix_arg --seed $((base_seed + 1))"
+  bash -c "$cmd" 2>&1 | tee -a job_${PBS_JOBID}.log &
+fi
+
 echo "Servers initialized!"
 # ensure yaml ends with newline
 sed -i -e '$a\' "$yaml_file"
@@ -118,10 +126,16 @@ if grep -q '^vllm_host:' "$yaml_file"; then
 else
   echo "vllm_host: $master_addr" >> "$yaml_file"
 fi
-if grep -q '^num_vllm_clients:' "$yaml_file"; then
-  sed -i "s/^num_vllm_clients:.*/num_vllm_clients: $num_gpus/" "$yaml_file"
+if [[ $num_gpus -eq 1 ]]; then
+  vllm_clients=2
 else
-  echo "num_vllm_clients: $num_gpus" >> "$yaml_file"
+  vllm_clients=$num_gpus
+fi
+
+if grep -q '^num_vllm_clients:' "$yaml_file"; then
+  sed -i "s/^num_vllm_clients:.*/num_vllm_clients: $vllm_clients/" "$yaml_file"
+else
+  echo "num_vllm_clients: $vllm_clients" >> "$yaml_file"
 fi
 
 sleep 120
@@ -145,7 +159,8 @@ dev_list=$(seq -s, $start_dev $end_dev)
 echo "cuda visible devices: $dev_list"
 
 # launch downstream job
-CUDA_VISIBLE_DEVICES=$dev_list bash launch.sh "$num_gpus_2" \
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CUDA_VISIBLE_DEVICES=$dev_list bash "$SCRIPT_DIR/launch.sh" "$num_gpus_2" \
   "$yaml_file" "${extra_args[@]}"
 
 unset CUDA_VISIBLE_DEVICES
