@@ -148,15 +148,15 @@ The framework introduces specialized metrics for measuring learning effectivenes
 
 Student training utilizes adaptive teaching outputs with automatic complexity adjustment based on model size. Complete evaluation protocols are documented in [docs/concepts/evaluation.md](docs/concepts/). Access to models and datasets requires `huggingface-cli login`. W&B logging can be disabled by setting `report_to: null`. Setup details are available in [docs/getting-started/](docs/getting-started/).
 
-## Concepts
+## Core Concepts
 
-RCL implements an outer loop architecture for Compound Intelligence. The two-phase SFT→RL training using GRPO creates teachers that diagnose student capability and provide adaptive teaching without harmful interventions, forming the foundation for persistent, continuously learning agent systems.
+**Teacher-Student Architecture**: ATLAS trains teacher models that can assess any student model's capability and provide conditional guidance. Teachers learn through GRPO optimization to maximize student performance improvements while maintaining reliability.
 
-ATLAS (Adaptive Teaching and Learning Alignment System) encompasses the teacher model family and inference pipeline implementing the Arc-ATLAS datasets. The system employs a two-pass inference protocol that first probes student understanding, then delivers conditional teaching based on diagnosed capability.
+**Diagnostic Probing**: Teachers assess student understanding through minimal interaction (≤50 tokens) before providing guidance, enabling capability-adapted teaching without requiring full problem solutions.
 
-vLLM integration provides FastAPI server endpoints (`/health`, `/generate`, `/init_communicator`) with client wiring into GRPO and Teacher trainers. Architectural details are documented in [docs/architecture/](docs/architecture/).
+**Adaptive Teaching**: Based on diagnosed capability, teachers provide targeted instruction - minimal intervention for strong students to prevent degradation, comprehensive scaffolding for weak students to maximize learning gains.
 
-Hydra configurations enable modular experiment design through `train.py` as the entry point, with outputs saved under `results/`. The configuration system supports flexible building blocks for experimental variation.
+**Training Methodology**: Two-phase SFT→RL pipeline where teachers learn optimal teaching strategies through reward signals based on student performance improvements and efficiency metrics.
 
 ## Config System
 
