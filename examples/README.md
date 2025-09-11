@@ -1,42 +1,42 @@
 # ATLAS Examples
 
-Interactive Jupyter notebooks demonstrating ATLAS's two-pass inference protocol with pre-trained teacher models.
+Jupyter notebooks demonstrating the ATLAS two-pass inference protocol with pre-trained teacher models.
 
-## 🔄 Inference Pipeline Overview
+## Inference Pipeline Overview
 
-The ATLAS inference pipeline wraps your existing agent with a teacher model in three simple steps:
+The ATLAS inference pipeline integrates with existing agents through the following steps:
 
-1. **Load Models**: Your agent (student, 4B-8B) + ATLAS teacher (8B) models
+1. **Load Models**: Student model (4B-8B parameters) and ATLAS teacher model (8B parameters)
 2. **Run Two-Pass Protocol**: 
-   - Diagnostic probe (~50 tokens): Teacher assesses your agent's capability
-   - Adaptive guidance (~200 tokens): Teacher provides targeted help
-3. **Generate Response**: Your agent uses guidance to improve output quality
+   - Diagnostic probe (~50 tokens): Teacher assesses student capability
+   - Adaptive guidance (~200 tokens): Teacher provides conditional guidance
+3. **Generate Response**: Student generates improved response using guidance
 
-**Total time**: ~30 seconds per problem on T4 GPU
-**Improvement**: 15-30% accuracy gain with near-zero degradation
+**Execution time**: Approximately 30 seconds per problem on T4 GPU
+**Performance gain**: 15.7% average accuracy improvement with 97% non-degradation rate
 
-## ⚡ Quick Test (< 1 minute)
+## Quick Test
 
-Test ATLAS with your agent in under a minute:
+Quick validation of ATLAS functionality:
 
 ```python
 from utils.atlas_inference import ATLASInference, load_atlas_models
 
-# Initialize with your agent
+# Initialize models
 atlas, _ = load_atlas_models(
-    student_model_name="your-agent-model",  # Your existing agent
+    student_model_name="your-model-name",
     teacher_thinking_name="Arc-Intelligence/ATLAS-8B-Thinking"
 )
 
-# Test on single problem
+# Run inference
 problem = "What is 15% of 80?"
 result = atlas.run_full_protocol(problem)
 
-print(f"Your Agent Alone: {result['baseline_response']}")
-print(f"With ATLAS Teacher: {result['guided_response']}")
+print(f"Baseline response: {result['baseline_response']}")
+print(f"Guided response: {result['guided_response']}")
 ```
 
-## 🚀 Wrap Your Agent with ATLAS
+## Integration Guide
 
 ### Step 1: Install Dependencies
 ```bash
@@ -65,17 +65,17 @@ atlas = ATLASInference(
 )
 ```
 
-### Step 3: Use in Your Pipeline
+### Step 3: Implementation
 ```python
-def your_agent_with_atlas(user_input):
-    # Run ATLAS protocol
+def inference_with_atlas(user_input):
+    # Execute ATLAS protocol
     result = atlas.run_full_protocol(user_input)
     
-    # Return enhanced response
+    # Return guided response
     return result['guided_response']
 
-# Drop-in replacement for your existing agent
-response = your_agent_with_atlas("Solve this problem: ...")
+# Usage
+response = inference_with_atlas("Solve this problem: ...")
 ```
 
 ### Integration Examples
@@ -125,40 +125,51 @@ Click the badges below to run examples directly in Google Colab with GPU acceler
 git clone https://github.com/Arc-Intelligence/RCL.git
 cd RCL/examples
 
-# Install dependencies
-pip install -r requirements.txt
-
-# Launch Jupyter
+# Launch Jupyter (dependencies installed automatically in notebooks)
 jupyter notebook
+```
+
+## Project Structure
+
+```
+examples/
+├── math_reasoning_demo.ipynb    # Math problem solving demo
+├── code_generation_demo.ipynb   # Code generation demo
+├── utils/                        # Shared utilities
+│   ├── atlas_inference.py       # Core ATLAS protocol
+│   ├── evaluation.py            # Evaluation metrics
+│   └── visualization.py        # Plotting functions
 ```
 
 ## Notebooks
 
+Each notebook includes integrated configuration and dataset loading for standalone execution.
+
 ### 1. Math Reasoning Demo (`math_reasoning_demo.ipynb`)
-Demonstrates ATLAS improving math problem solving accuracy with:
+Configuration for math problem solving evaluation:
 - **Student Model**: Qwen/Qwen3-4B-Instruct-2507
 - **Teacher Model**: ATLAS-8B-Thinking
 - **Task**: GSM8K-style math word problems
-- **Expected Improvement**: ~15.7% accuracy gain [¹](#performance-metrics)
+- **Performance Metric**: 15.7% average accuracy improvement
 
-**Key Features:**
+**Implementation details:**
 - Two-pass diagnostic probing protocol
-- Before/after accuracy comparison
-- Token efficiency analysis
-- Interactive problem exploration
+- Comparative accuracy analysis
+- Token efficiency measurement
+- Problem-level evaluation
 
 ### 2. Code Generation Demo (`code_generation_demo.ipynb`)
-Shows ATLAS enhancing code generation and explanation quality with:
+Configuration for code generation evaluation:
 - **Student Model**: Qwen/Qwen3-4B-Instruct-2507  
 - **Teacher Model**: ATLAS-8B-Instruct
 - **Task**: HumanEval-style coding problems
-- **Expected Improvement**: Better code quality and explanations
+- **Performance Metric**: Code quality and completeness improvements
 
-**Key Features:**
-- Adaptive learning based on coding capability
-- Code correctness evaluation
-- Explanation quality assessment
-- Developer productivity metrics
+**Implementation details:**
+- Capability-based adaptive guidance
+- Syntax and correctness evaluation
+- Code quality metrics
+- Comparative analysis
 
 ## Architecture Overview
 
@@ -184,7 +195,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ### Custom Problem Sets
 ```python
-# Add your own problems to data/
+# Define your own problems directly in the notebook
 custom_problems = [
     {"problem": "Your question here", "solution": "Expected answer"},
     # ... more problems
