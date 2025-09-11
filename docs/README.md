@@ -1,13 +1,13 @@
-# RCL Documentation
+# ATLAS Documentation
 
-Reinforced Continual Learning (RCL) is a system for training teacher models that adapt to student capabilities without degrading performance. This documentation provides implementation details, configuration guides, and API references for using RCL in production environments.
+ATLAS (Adaptive Training and Learning Alignment System) is a framework for training teacher models that adapt to student capabilities without degrading performance. This documentation provides implementation details, configuration guides, and API references for using ATLAS in production environments.
 
 ## Overview
 
-RCL implements Adaptive Teaching and Learning Alignment System (ATLAS) through a two-phase training pipeline:
+ATLAS implements adaptive learning through a two-phase training pipeline:
 
 1. **Supervised Fine-tuning (SFT)**: Initial warmup phase
-2. **Reinforcement Learning (RL/GRPO)**: Adaptive teaching training with vLLM server integration
+2. **Reinforcement Learning (RL/GRPO)**: Adaptive learning optimization with vLLM server integration
 
 The system uses a diagnostic probing protocol where teachers first assess student capability, then provide calibrated guidance to improve performance without harmful interventions.
 
@@ -28,16 +28,16 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 ## Architecture
 
 - **Entry Point**: `train.py` with Hydra configuration management
-- **Training**: SFT→RL pipeline using GRPO with adaptive teaching rewards
+- **Training**: SFT→RL pipeline using GRPO with adaptive learning rewards
 - **Generation**: vLLM server integration for distributed inference
 - **Configuration**: Modular YAML configs in `configs/` directory
 - **Data**: Custom dataset handlers in `custom_data/`
 
 ## Core Concepts
 
-**Adaptive Teaching Protocol**:
+**Adaptive Learning Protocol**:
 - Pass 1: Diagnostic probing (≤50 tokens) to assess student capability
-- Pass 2: Conditional teaching tailored to diagnosed capability level
+- Pass 2: Conditional guidance tailored to diagnosed capability level
 
 **Reward Design**:
 - Zero reward for performance degradation
@@ -77,8 +77,8 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 - [Compound Intelligence](architecture/compound-intelligence.md) - Vision and roadmap
 
 ### Concepts
-- [Adaptive Teaching](concepts/adaptive-teaching.md) - Two-pass diagnostic protocol and teaching strategy
-- [Reward Design](concepts/reward-design.md) - Teaching effectiveness metrics and asymmetric rewards
+- [Adaptive Learning](concepts/adaptive-learning.md) - Two-pass diagnostic protocol and learning strategy
+- [Reward Design](concepts/reward-design.md) - Learning effectiveness metrics and asymmetric rewards
 
 ### Deployment
 - [Inference](deployment/inference.md) - Production deployment patterns
@@ -95,7 +95,7 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 
 ## Configuration
 
-RCL uses Hydra for modular configuration management:
+ATLAS uses Hydra for modular configuration management:
 
 - `configs/run/` - Complete experiment configurations
 - `configs/model/` - Model-specific settings  
@@ -109,10 +109,10 @@ scripts/launch.sh 8 configs/run/teacher_sft.yaml learning_rate=5e-6 output_dir=c
 
 ## Performance Metrics
 
-Key evaluation metrics for teaching effectiveness:
+Key evaluation metrics for learning effectiveness:
 - **Learning Rate (LR)**: Performance change per interaction
 - **Non-Degradation Rate (NDR)**: Percentage of non-harmful interactions
-- **Teaching Efficiency Score (TES)**: Performance gain per teaching token
+- **Learning Efficiency Score (LES)**: Performance gain per guidance token
 
 ## Support
 

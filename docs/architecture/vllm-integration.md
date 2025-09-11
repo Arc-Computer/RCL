@@ -1,7 +1,7 @@
 
 # vLLM Integration
 
-RCL can use vLLM for high-throughput generation during RL.
+ATLAS can use vLLM for high-throughput generation during RL.
 
 ## Launch Strategy
 

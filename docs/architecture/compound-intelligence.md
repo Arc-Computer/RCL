@@ -1,14 +1,14 @@
 
 # Compound Intelligence Architecture
 
-Compound Intelligence is RCL's architectural vision for persistent, continuously learning agent systems. ATLAS serves as the foundational outer loop training component implementing adaptive teaching capabilities.
+Compound Intelligence is ATLAS's architectural vision for persistent, continuously learning agent systems. ATLAS serves as the foundational outer loop training component implementing adaptive learning capabilities.
 
 ## Current Implementation (ATLAS)
 
-RCL currently implements the offline RL component of Compound Intelligence:
+ATLAS currently implements the offline RL component of Compound Intelligence:
 
-- **Adaptive Teaching Models**: Trained via SFT→RL (GRPO) pipeline
-- **Two-Pass Protocol**: Diagnostic probing followed by capability-adapted teaching
+- **Adaptive Learning Models**: Trained via SFT→RL (GRPO) pipeline
+- **Two-Pass Protocol**: Diagnostic probing followed by capability-adapted guidance
 - **Non-Degradation Guarantee**: Zero reward for performance degradation
 - **vLLM Integration**: Production-ready inference server for distributed training
 

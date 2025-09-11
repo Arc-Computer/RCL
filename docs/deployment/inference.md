@@ -5,7 +5,7 @@
 
 ### Using Transformers
 
-Load ATLAS teacher models trained with RCL:
+Load ATLAS teacher models trained with ATLAS:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -31,7 +31,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 ### Two-Pass Inference Protocol
 
-ATLAS teacher models use a two-pass protocol for adaptive teaching:
+ATLAS teacher models use a two-pass protocol for adaptive learning:
 
 ```python
 # Pass 1: Diagnostic probing
@@ -40,8 +40,8 @@ probe_inputs = tokenizer(probe_prompt, return_tensors="pt").to(model.device)
 probe_output = model.generate(**probe_inputs, max_new_tokens=50)
 student_approach = tokenizer.decode(probe_output[0], skip_special_tokens=True)
 
-# Pass 2: Adaptive teaching based on probe
-teaching_prompt = f"Question: {question}\n\nStudent approach: {student_approach}\n\nProvide adaptive teaching:"
+# Pass 2: Adaptive guidance based on probe
+teaching_prompt = f"Question: {question}\n\nStudent approach: {student_approach}\n\nProvide adaptive guidance:"
 teaching_inputs = tokenizer(teaching_prompt, return_tensors="pt").to(model.device)
 teaching_output = model.generate(**teaching_inputs, max_new_tokens=512)
 final_response = tokenizer.decode(teaching_output[0], skip_special_tokens=True)
@@ -61,7 +61,7 @@ final_response = tokenizer.decode(teaching_output[0], skip_special_tokens=True)
 
 ### Generation Parameters
 - **Probe phase**: `max_new_tokens=50` (diagnostic responses)
-- **Teaching phase**: `max_new_tokens=512` (adaptive guidance)
+- **Guidance phase**: `max_new_tokens=512` (adaptive guidance)
 - **Temperature**: 0.7 (matches training configuration)
 - **Top-p**: 0.9 (matches training configuration)
 

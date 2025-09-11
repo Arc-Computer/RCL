@@ -1,7 +1,7 @@
 
 # Distributed Training
 
-RCL uses Accelerate + DeepSpeed for efficient multi-GPU training.
+ATLAS uses Accelerate + DeepSpeed for efficient multi-GPU training.
 
 ## Launch Flags
 

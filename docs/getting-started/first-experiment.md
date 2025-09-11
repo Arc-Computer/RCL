@@ -1,7 +1,7 @@
 
 # First Experiment
 
-Complete walkthrough of the RCL two-phase training pipeline: SFT warmup followed by GRPO-based reinforcement learning with vLLM server integration.
+Complete walkthrough of the ATLAS two-phase training pipeline: SFT warmup followed by GRPO-based reinforcement learning with vLLM server integration.
 
 ## Hardware Requirements
 
