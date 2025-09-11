@@ -1,6 +1,6 @@
-# ATLAS: Adaptive Teaching for RL **without** Model Degradation
+# ATLAS: Adaptive Training Methodology for RL
 
-> A diagnostic teaching framework that reliably improves student performance through real-time capability assessment and conditional guidance.
+> A diagnostic teaching approach that delivers consistent performance improvements in reinforcement learning training pipelines.
 
 <p align="center">
   <b>Adaptive Teaching and Learning Alignment System for Agents</b>
