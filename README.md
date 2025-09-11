@@ -16,7 +16,7 @@
 
 </div>
 
-ATLAS delivers consistent 15.7% accuracy improvements and 31% completion gains across any base model through diagnostic probing and conditional teaching.
+ATLAS delivers consistent 15.7% accuracy improvements and 31% completion gains across any base model through diagnostic probing and conditional teaching. The framework works with any student model—train your own teacher or use our pre-trained ATLAS-8B models.
 
 ## Student Performance Results
 
