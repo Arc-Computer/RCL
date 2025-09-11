@@ -1,7 +1,7 @@
 
 # Testing Your Installation
 
-Verify your RCL environment is correctly set up before running full experiments.
+Verify your ATLAS environment is correctly set up before running full experiments.
 
 ## Environment Verification
 

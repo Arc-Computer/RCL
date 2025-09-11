@@ -1,7 +1,7 @@
 
 # Quickstart
 
-Run minimal smoke tests on a single GPU to validate your RCL setup.
+Run minimal smoke tests on a single GPU to validate your ATLAS setup.
 
 ## Prerequisites
 

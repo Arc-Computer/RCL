@@ -1,7 +1,7 @@
 
 # Data Requirements
 
-RCL expects problem–solution data with optional reasoning traces. These requirements apply across SFT and RL.
+ATLAS expects problem–solution data with optional reasoning traces. These requirements apply across SFT and RL.
 
 ## Columns
 
