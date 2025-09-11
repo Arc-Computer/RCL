@@ -11,7 +11,7 @@ DEFAULT_TEACHER_INSTRUCT = "Arc-Intelligence/ATLAS-8B-Instruct"
 
 # Token Limits
 PROBE_TOKEN_LIMIT = 50  # Maximum tokens for diagnostic probing (per docs)
-TEACHING_RESPONSE_LIMIT = 200  # Maximum tokens for teaching guidance
+LEARNING_RESPONSE_LIMIT = 200  # Maximum tokens for adaptive learning guidance
 STUDENT_RESPONSE_LIMIT = 300  # Maximum tokens for student responses
 
 # Capability Score Thresholds
@@ -19,13 +19,13 @@ CAPABILITY_HIGH_THRESHOLD = 4  # Scores 4-5: Light intervention
 CAPABILITY_MEDIUM_THRESHOLD = 2  # Scores 2-3: Medium guidance
 # Score 1: Heavy support
 
-# Teaching Strategies (aligned with docs)
+# Learning Strategies (aligned with docs)
 STRATEGY_LIGHT = "Light"
 STRATEGY_MEDIUM = "Medium" 
 STRATEGY_HEAVY = "Heavy"
 
 # Evaluation Settings
-DEGRADATION_PENALTY_MULTIPLIER = 2.0  # Per adaptive-teaching.md
+DEGRADATION_PENALTY_MULTIPLIER = 2.0  # Per adaptive-learning.md
 IMPROVEMENT_REWARD = 1.0
 NO_CHANGE_REWARD = 0.0
 
@@ -94,5 +94,5 @@ BENCHMARK_TOKEN_EFFICIENCY = 0.372
 
 # Documentation References
 DOCS_PERFORMANCE_ANALYSIS = "../docs/benchmarks/detailed-performance-analysis.md"
-DOCS_ADAPTIVE_TEACHING = "../docs/concepts/adaptive-teaching.md"
+DOCS_ADAPTIVE_LEARNING = "../docs/concepts/adaptive-learning.md"
 DOCS_MAIN_README = "../README.md"

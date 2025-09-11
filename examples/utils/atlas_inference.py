@@ -1,7 +1,7 @@
 """
 ATLAS Two-Pass Inference Protocol Implementation
 
-Core logic for diagnostic probing and adaptive teaching.
+Core logic for diagnostic probing and adaptive learning.
 """
 
 import torch
@@ -14,7 +14,7 @@ class ATLASInference:
     """
     ATLAS two-pass inference protocol implementation.
     
-    Combines diagnostic probing with adaptive teaching to improve
+    Combines diagnostic probing with adaptive learning to improve
     student model performance across various tasks.
     """
     
@@ -87,50 +87,50 @@ Provide assessment:"""
         return {
             "capability_score": capability_score,
             "probe_response": probe_response,
-            "teaching_strategy": self._determine_teaching_strategy(capability_score)
+            "learning_strategy": self._determine_learning_strategy(capability_score)
         }
     
-    def adaptive_teaching(
+    def adaptive_learning(
         self, 
         problem: str, 
         diagnostic_result: Dict[str, any]
     ) -> Dict[str, any]:
         """
-        Phase 2: Provide capability-adapted teaching guidance.
+        Phase 2: Provide capability-adapted learning guidance.
         
         Args:
             problem: The input problem/question
             diagnostic_result: Result from diagnostic_probe
             
         Returns:
-            Dict containing teaching guidance and strategy
+            Dict containing learning guidance and strategy
         """
         capability_score = diagnostic_result["capability_score"]
-        strategy = diagnostic_result["teaching_strategy"]
+        strategy = diagnostic_result["learning_strategy"]
         
         if strategy == "Light":
-            teaching_prompt = f"""The student model should handle this well. Provide minimal intervention - just a brief hint or confirmation of approach.
+            learning_prompt = f"""The student model should handle this well. Provide minimal intervention - just a brief hint or confirmation of approach.
 
 Problem: {problem}
 
 Brief guidance:"""
         
         elif strategy == "Medium":
-            teaching_prompt = f"""The student model may need guided discovery. Provide structured hints and outline key steps without giving away the complete solution.
+            learning_prompt = f"""The student model may need guided discovery. Provide structured hints and outline key steps without giving away the complete solution.
 
 Problem: {problem}
 
 Structured guidance:"""
         
         else:  # Heavy
-            teaching_prompt = f"""The student model will likely struggle. Provide direct support with step-by-step breakdown, examples, and clear explanations.
+            learning_prompt = f"""The student model will likely struggle. Provide direct support with step-by-step breakdown, examples, and clear explanations.
 
 Problem: {problem}
 
-Comprehensive teaching:"""
+Comprehensive guidance:"""
         
-        # Generate teaching guidance
-        messages = [{"role": "user", "content": teaching_prompt}]
+        # Generate learning guidance
+        messages = [{"role": "user", "content": learning_prompt}]
         inputs = self.teacher_tokenizer.apply_chat_template(
             messages,
             add_generation_prompt=True,
@@ -147,13 +147,13 @@ Comprehensive teaching:"""
                 do_sample=True
             )
         
-        teaching_response = self.teacher_tokenizer.decode(
+        learning_response = self.teacher_tokenizer.decode(
             outputs[0][inputs["input_ids"].shape[-1]:],
             skip_special_tokens=True
         )
         
         return {
-            "teaching_guidance": teaching_response,
+            "learning_guidance": learning_response,
             "strategy": strategy,
             "capability_score": capability_score
         }
@@ -161,23 +161,23 @@ Comprehensive teaching:"""
     def generate_student_response(
         self, 
         problem: str, 
-        teaching_guidance: Optional[str] = None
+        learning_guidance: Optional[str] = None
     ) -> str:
         """
         Generate student response with or without teacher guidance.
         
         Args:
             problem: The input problem/question
-            teaching_guidance: Optional teaching guidance from teacher
+            learning_guidance: Optional learning guidance from teacher
             
         Returns:
             Student's generated response
         """
-        if teaching_guidance:
+        if learning_guidance:
             # Guided generation
             prompt = f"""Problem: {problem}
 
-Guidance: {teaching_guidance}
+Guidance: {learning_guidance}
 
 Solution:"""
         else:
@@ -219,13 +219,13 @@ Solution:"""
             problem: The input problem/question
             
         Returns:
-            Complete results including diagnostic, teaching, and response
+            Complete results including diagnostic, learning, and response
         """
         # Phase 1: Diagnostic probing
         diagnostic_result = self.diagnostic_probe(problem)
         
-        # Phase 2: Adaptive teaching
-        teaching_result = self.adaptive_teaching(problem, diagnostic_result)
+        # Phase 2: Adaptive learning
+        learning_result = self.adaptive_learning(problem, diagnostic_result)
         
         # Generate baseline (student alone)
         baseline_response = self.generate_student_response(problem)
@@ -233,13 +233,13 @@ Solution:"""
         # Generate guided response (student + teacher)
         guided_response = self.generate_student_response(
             problem, 
-            teaching_result["teaching_guidance"]
+            learning_result["learning_guidance"]
         )
         
         return {
             "problem": problem,
             "diagnostic": diagnostic_result,
-            "teaching": teaching_result,
+            "learning": learning_result,
             "baseline_response": baseline_response,
             "guided_response": guided_response
         }
@@ -288,10 +288,10 @@ Solution:"""
         
         return 3  # Default to middle score
     
-    def _determine_teaching_strategy(self, capability_score: int) -> str:
-        """Determine teaching strategy based on capability score.
+    def _determine_learning_strategy(self, capability_score: int) -> str:
+        """Determine learning strategy based on capability score.
         
-        Maps capability scores to teaching strategies:
+        Maps capability scores to learning strategies:
         - Scores 4-5: Light intervention (high capability)
         - Scores 2-3: Medium guidance (moderate capability)  
         - Score 1: Heavy support (low capability)

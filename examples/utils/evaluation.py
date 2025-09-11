@@ -175,7 +175,7 @@ def evaluate_math_responses(
     non_degradation_rate = 1 - (degradations / total_problems) if total_problems > 0 else 1.0
     
     # Calculate asymmetric reward with 2x degradation penalty
-    # Based on docs/concepts/adaptive-teaching.md degradation_penalty_multiplier: 2.0
+    # Based on docs/concepts/adaptive-learning.md degradation_penalty_multiplier: 2.0
     total_reward = 0
     for result in detailed_results:
         if result["improved"]:
@@ -275,7 +275,7 @@ def evaluate_code_responses(
 def calculate_token_efficiency(
     baseline_responses: List[str],
     guided_responses: List[str],
-    teaching_guidance: List[str]
+    learning_guidance: List[str]
 ) -> Dict[str, any]:
     """
     Calculate token efficiency metrics.
@@ -283,14 +283,14 @@ def calculate_token_efficiency(
     Args:
         baseline_responses: Student-only responses
         guided_responses: Student+teacher responses  
-        teaching_guidance: Teacher guidance provided
+        learning_guidance: Teacher guidance provided
         
     Returns:
         Token efficiency metrics
     """
     baseline_lengths = [len(response.split()) for response in baseline_responses]
     guided_lengths = [len(response.split()) for response in guided_responses]
-    guidance_lengths = [len(guidance.split()) for guidance in teaching_guidance]
+    guidance_lengths = [len(guidance.split()) for guidance in learning_guidance]
     
     avg_baseline_tokens = np.mean(baseline_lengths)
     avg_guided_tokens = np.mean(guided_lengths)
@@ -331,7 +331,7 @@ def calculate_metrics(
     """
     baseline_responses = [r["baseline_response"] for r in results]
     guided_responses = [r["guided_response"] for r in results]
-    teaching_guidance = [r["teaching"]["teaching_guidance"] for r in results]
+    learning_guidance = [r["learning"]["learning_guidance"] for r in results]
     
     # Task-specific evaluation
     if task_type == "math":
@@ -341,11 +341,11 @@ def calculate_metrics(
     
     # Token efficiency
     efficiency_metrics = calculate_token_efficiency(
-        baseline_responses, guided_responses, teaching_guidance
+        baseline_responses, guided_responses, learning_guidance
     )
     
-    # Teaching strategy distribution
-    strategies = [r["teaching"]["strategy"] for r in results]
+    # Learning strategy distribution
+    strategies = [r["learning"]["strategy"] for r in results]
     strategy_counts = Counter(strategies)
     
     # Diagnostic score distribution  
@@ -355,7 +355,7 @@ def calculate_metrics(
     return {
         **task_metrics,
         **efficiency_metrics,
-        "teaching_strategies": dict(strategy_counts),
+        "learning_strategies": dict(strategy_counts),
         "avg_diagnostic_score": avg_diagnostic_score,
         "diagnostic_scores": diagnostic_scores
     }

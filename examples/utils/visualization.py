@@ -78,16 +78,16 @@ def plot_comparison(metrics: Dict[str, Any], task_type: str = "math") -> None:
         ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 10, 
                 f'{value:.0f}', ha='center', va='bottom', fontweight='bold')
     
-    # 4. Teaching Strategy Distribution
+    # 4. Learning Strategy Distribution
     ax4 = axes[1, 1]
-    strategies = metrics['teaching_strategies']
+    strategies = metrics['learning_strategies']
     strategy_labels = list(strategies.keys())
     strategy_values = list(strategies.values())
     strategy_colors = ['#ff9999', '#66b3ff', '#99ff99'][:len(strategy_labels)]
     
     bars4 = ax4.bar(strategy_labels, strategy_values, color=strategy_colors, alpha=0.8)
     ax4.set_ylabel('Number of Problems')
-    ax4.set_title('Teaching Strategy Distribution')
+    ax4.set_title('Learning Strategy Distribution')
     
     # Add value labels
     for bar, value in zip(bars4, strategy_values):
@@ -230,8 +230,8 @@ def show_example_comparisons(
                 
                 <div style='flex: 1; background-color: #d1ecf1; padding: 10px; border-radius: 5px;'>
                     <h5 style='color: #0c5460; margin-top: 0;'>🤖 Teacher Guidance</h5>
-                    <p style='margin: 0; font-size: 12px; font-style: italic;'><strong>Strategy:</strong> {result['teaching']['strategy']}</p>
-                    <p style='margin: 5px 0 0 0; font-size: 14px;'>{result['teaching']['teaching_guidance'][:200]}{"..." if len(result['teaching']['teaching_guidance']) > 200 else ""}</p>
+                    <p style='margin: 0; font-size: 12px; font-style: italic;'><strong>Strategy:</strong> {result['learning']['strategy']}</p>
+                    <p style='margin: 5px 0 0 0; font-size: 14px;'>{result['learning']['learning_guidance'][:200]}{"..." if len(result['learning']['learning_guidance']) > 200 else ""}</p>
                 </div>
                 
                 <div style='flex: 1; background-color: #d4edda; padding: 10px; border-radius: 5px;'>
@@ -254,7 +254,7 @@ def create_diagnostic_analysis(results: List[Dict[str, Any]]) -> None:
     """
     # Extract diagnostic data
     capability_scores = [r['diagnostic']['capability_score'] for r in results]
-    strategies = [r['teaching']['strategy'] for r in results]
+    strategies = [r['learning']['strategy'] for r in results]
     
     # Create diagnostic distribution plot
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
@@ -275,8 +275,8 @@ def create_diagnostic_analysis(results: List[Dict[str, Any]]) -> None:
                    color=strategy_colors[strategy], alpha=0.6, s=50)
     
     ax2.set_xlabel('Diagnostic Score')
-    ax2.set_ylabel('Teaching Strategy')
-    ax2.set_title('Diagnostic Score → Teaching Strategy Mapping')
+    ax2.set_ylabel('Learning Strategy')
+    ax2.set_title('Diagnostic Score → Learning Strategy Mapping')
     ax2.set_yticks([1, 2, 3])
     ax2.set_yticklabels(['Light', 'Medium', 'Heavy'])
     ax2.set_xticks(range(1, 6))
