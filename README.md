@@ -10,35 +10,47 @@
 
 </div>
 
-This repository provides **production-ready code for training adaptive teacher models** that diagnose student capability and provide tailored guidance without performance degradation. Built on GRPO (Group Relative Policy Optimization) with distributed vLLM integration.
+Training adaptive teacher models presents a fundamental challenge in reinforcement learning: how to provide guidance that improves student performance without introducing harmful interventions. This repository implements ATLAS, a production-ready framework that addresses this challenge through diagnostic probing and conditional teaching, achieving a 97% non-degradation rate while maintaining significant performance improvements.
 
-**What's included:**
-- **ATLAS Training Pipeline**: Complete SFT → RL workflow with GRPO optimization
-- **Adaptive Teaching Protocol**: Two-pass diagnostic probing + conditional teaching
-- **Production Integration**: vLLM server architecture with distributed training support  
-- **Pre-trained Models**: ATLAS-8B teacher models and Arc-ATLAS teaching datasets
+## Student Performance Results
+
+Our evaluation demonstrates that ATLAS-trained teachers can reliably improve student model performance across multiple metrics while maintaining safety through non-degradation guarantees.
+
+<div align="center">
+<img src="public/performance-chart.png" alt="Student Performance: ATLAS Teacher+Student vs Student Alone - showing accuracy gains and completion rates" width="700" style="border-radius: 12px;">
+</div>
+
+| Metric | Teacher+Student | Student Alone | Improvement |
+|--------|----------------|---------------|-------------|
+| **Average accuracy** | +15.7% | baseline | **+15.7%** |
+| **Maximum improvement** | +29.6% | - | **+29.6%** |
+| **Completion rate** | ~100% | ~69% | **+31%** |
+| **Response efficiency** | ~2k tokens | ~4k tokens | **-50%** |
+| **Generation time** | ~1:10 | ~1:21 | **-13.6%** |
+
+The system achieves a 97% non-degradation rate with consistent improvements across problem difficulty levels. The framework includes the complete ATLAS training pipeline with SFT to RL workflow using GRPO optimization, the adaptive teaching protocol implementing two-pass diagnostic probing with conditional teaching, production-ready vLLM server architecture with distributed training support, and pre-trained ATLAS-8B teacher models with Arc-ATLAS teaching datasets.
+
+---
 
 ## Adaptive Teaching Protocol
 
-RCL's core innovation: diagnostic probing followed by capability-adapted teaching to ensure non-degradation.
+The core innovation lies in diagnostic probing followed by capability-adapted teaching to ensure non-degradation.
 
 <div align="center">
 <img src="public/adaptive-teaching.png" alt="ATLAS Two-Pass Inference Protocol - Diagnostic probing followed by adaptive teaching based on capability assessment" width="700" style="border-radius: 12px;">
 </div>
 
-**Pass 1: Diagnostic Probing** - Teacher probes student understanding with minimal interaction (≤50 tokens) to reveal capability level without requiring full solutions.
+The protocol operates in two phases. First, diagnostic probing allows the teacher to assess student understanding through minimal interaction (≤50 tokens), revealing capability levels without requiring complete solutions. Second, adaptive teaching provides conditional guidance tailored to the diagnosed capability—strong students receive minimal intervention to avoid degradation while weak students receive comprehensive scaffolding and support. The reward system assigns zero reward for performance degradation and positive rewards for improvements with efficiency bonuses, encouraging helpful teaching while preventing harmful interventions.
 
-**Pass 2: Adaptive Teaching** - Conditional teaching tailored to diagnosed capability:
-- Strong students: Minimal intervention to avoid degradation  
-- Weak students: Comprehensive scaffolding and support
+This adaptive teaching system serves as the foundation for our broader Compound Intelligence framework, which combines persistent memory with online learning loops for continuously improving agent systems.
 
-**Reward System** - 0.0 reward for performance degradation, positive rewards for improvements with efficiency bonuses. Encourages helpful teaching while avoiding harmful interventions.
-
-**Roadmap**: This adaptive teaching system serves as the foundation for our broader **Compound Intelligence** framework—combining persistent memory with online learning loops for continuously improving agent systems.
+---
 
 <div align="center">
 <img src="public/Training-Pipeline.png" alt="ATLAS Training Pipeline - Two-phase SFT to RL workflow with adaptive teaching protocol" width="700" style="border-radius: 12px;">
 </div>
+
+---
 
 ## Quickstart
 
@@ -56,14 +68,13 @@ scripts/launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model
 scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
 
-**Notes:**
-- `teacher_rcl.yaml` uses `use_vllm_server: true` by default
-- `launch_with_server.sh` sets `vllm_host` and validates `vllm_port`
-- Add `offload` at the end of commands to reduce GPU memory usage
+The `teacher_rcl.yaml` configuration uses `use_vllm_server: true` by default, while `launch_with_server.sh` handles `vllm_host` setup and `vllm_port` validation. Adding `offload` to commands reduces GPU memory usage.
+
+---
 
 ## Installation
 
-We recommend using **Conda** for managing environments. Our repository and models have been tested with **Python 3.11** and **Python 3.12**. To replicate our Conda environment, use the appropriate installation script:
+Conda is recommended for environment management. The repository and models have been validated with Python 3.11 and Python 3.12. Use the appropriate installation script to replicate the environment:
 
 **Python 3.11:**
 ```sh
@@ -90,7 +101,8 @@ python -m pip install --upgrade -r requirements-py311.txt  # or requirements-py3
 
 RCL uses a two-phase SFT→RL pipeline managed via [Hydra](https://hydra.cc/) configs. Training is scalable from single GPU to distributed setups with DeepSpeed.
 
-**Basic Training:**
+Basic training follows a two-phase approach:
+
 ```sh
 # SFT training
 scripts/launch.sh ${NUM_OF_GPUS} configs/run/teacher_sft.yaml ${hydra_args}
@@ -99,11 +111,12 @@ scripts/launch.sh ${NUM_OF_GPUS} configs/run/teacher_sft.yaml ${hydra_args}
 scripts/launch_with_server.sh ${NUM_VLLM_GPUS} ${NUM_TRAINING_GPUS} configs/run/teacher_rcl.yaml ${hydra_args}
 ```
 
-**Key Parameters:** `degradation_penalty_multiplier`, `dataset_id_or_path`, `model_name_or_path`. Add `offload` for memory optimization. Results save to `results/`.
+Key parameters include `degradation_penalty_multiplier`, `dataset_id_or_path`, and `model_name_or_path`. Memory optimization can be achieved by adding `offload` to commands. All results are saved to `results/`.
 
 See [docs/guides/distributed-training.md](docs/guides/) for multi-GPU setup and [docs/guides/rl-training.md](docs/guides/) for detailed RL parameters.
 
-**Production Training (8×H100):**
+Production training on 8×H100 infrastructure:
+
 ```sh
 # Phase 1: SFT Warmup
 scripts/launch.sh 8 configs/run/teacher_sft.yaml output_dir=path/to/save/pre_rl_model
@@ -113,40 +126,31 @@ scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model
 ```
 
-**Datasets:** Defaults to 8B teacher model with `Arc-Intelligence/Arc-ATLAS-Teach-v0` for both SFT and RL phases. Custom datasets need `question`, `solution` columns. See [docs/guides/data-requirements.md](docs/guides/) for formatting details.
+The system defaults to the 8B teacher model with `Arc-Intelligence/Arc-ATLAS-Teach-v0` for both SFT and RL phases. Custom datasets require `question` and `solution` columns. Detailed formatting specifications are available in [docs/guides/data-requirements.md](docs/guides/).
 
 See [docs/concepts/adaptive-teaching.md](docs/concepts/) for detailed protocol and reward design.
 
 ### Learning Metrics
 
-RCL introduces metrics to measure learning itself:
-- **Learning Rate (LR)**: Performance change per interaction
-- **Non-Degradation Rate (NDR)**: Interactions that don't hurt performance (target: ≥99%)  
-- **Teaching Efficiency Score (TES)**: Performance gain per teaching token
+The framework introduces specialized metrics for measuring learning effectiveness: Learning Rate (LR) captures performance change per interaction, Non-Degradation Rate (NDR) measures interactions that maintain or improve performance with a target of ≥99%, and Teaching Efficiency Score (TES) quantifies performance gain per teaching token.
 
-**Student Training & Evaluation:** Students trained on adaptive teaching outputs with automatic complexity adjustment based on model size. See [docs/concepts/evaluation.md](docs/concepts/) for complete protocols.
-
-**Prerequisites:** `huggingface-cli login` required for model/dataset access. Set `report_to: null` to disable W&B logging. See [docs/getting-started/](docs/getting-started/) for setup details.
+Student training utilizes adaptive teaching outputs with automatic complexity adjustment based on model size. Complete evaluation protocols are documented in [docs/concepts/evaluation.md](docs/concepts/). Access to models and datasets requires `huggingface-cli login`. W&B logging can be disabled by setting `report_to: null`. Setup details are available in [docs/getting-started/](docs/getting-started/).
 
 ## Concepts
 
-**RCL**: Outer loop architecture for Compound Intelligence. Two-phase SFT→RL (GRPO) training creates teachers that diagnose student capability and provide adaptive teaching without harmful interventions. Forms the foundation for persistent, continuously learning agent systems.
+RCL implements an outer loop architecture for Compound Intelligence. The two-phase SFT→RL training using GRPO creates teachers that diagnose student capability and provide adaptive teaching without harmful interventions, forming the foundation for persistent, continuously learning agent systems.
 
-**ATLAS**: **A**daptive **T**eaching and **L**earning **A**lignment **S**ystem — teacher model family and inference pipeline implementing the Arc-ATLAS datasets. Uses two-pass inference protocol: probe student understanding, then deliver conditional teaching based on diagnosed capability.
+ATLAS (Adaptive Teaching and Learning Alignment System) encompasses the teacher model family and inference pipeline implementing the Arc-ATLAS datasets. The system employs a two-pass inference protocol that first probes student understanding, then delivers conditional teaching based on diagnosed capability.
 
-**vLLM Integration**: FastAPI server endpoints (`/health`, `/generate`, `/init_communicator`) with client wiring into GRPO and Teacher trainers. See [docs/architecture/](docs/architecture/) for details.
+vLLM integration provides FastAPI server endpoints (`/health`, `/generate`, `/init_communicator`) with client wiring into GRPO and Teacher trainers. Architectural details are documented in [docs/architecture/](docs/architecture/).
 
-**Hydra Configs**: Entry point via `train.py`, outputs under `results/`. Configuration system supports modular building blocks for experiments.
+Hydra configurations enable modular experiment design through `train.py` as the entry point, with outputs saved under `results/`. The configuration system supports flexible building blocks for experimental variation.
 
 ## Config System
 
-**Run recipes**: `configs/run/*.yaml` contain complete experiment configurations using building blocks from `configs/{data,model,trainer}/`.
+Run recipes in `configs/run/*.yaml` contain complete experiment configurations built from modular components in `configs/{data,model,trainer}/`. Common parameter overrides include `dataset_id_or_path=my/custom/dataset` and `model_name_or_path=my/base/model`.
 
-**Common overrides**: 
-- `dataset_id_or_path=my/custom/dataset` 
-- `model_name_or_path=my/base/model`
-
-**Reward configuration**: `configs/trainer/reward/adaptive_teaching.yaml` controls teaching behavior via `degradation_penalty_multiplier`, `efficiency_weight`, and probe token limits. See [docs/concepts/](docs/concepts/) for detailed reward design.
+Reward configuration through `configs/trainer/reward/adaptive_teaching.yaml` controls teaching behavior via `degradation_penalty_multiplier`, `efficiency_weight`, and probe token limits. Detailed reward design principles are documented in [docs/concepts/](docs/concepts/).
 
 ## Project Structure
 
@@ -160,43 +164,15 @@ RCL introduces metrics to measure learning itself:
 
 ## Troubleshooting
 
-**vLLM Health**: Check server status with `curl http://$vllm_host:$vllm_port/health`
-
-**Port Conflicts**: Override default port via `vllm_port=8766` if 8765 is occupied
-
-**HF Authentication**: Run `huggingface-cli login` if encountering download errors
-
-**OOM Issues**: Add `offload` to commands, reduce `per_device_train_batch_size`, or use `accelerate/deepspeed_zero1.yaml`
+Server health can be verified with `curl http://$vllm_host:$vllm_port/health`. Port conflicts can be resolved by setting `vllm_port=8766` if the default 8765 is occupied. Authentication errors typically require running `huggingface-cli login`. Memory issues can be addressed by adding `offload` to commands, reducing `per_device_train_batch_size`, or using `accelerate/deepspeed_zero1.yaml`.
 
 For comprehensive troubleshooting, installation guides, and deployment instructions, see [docs/](docs/).
 
 ## Status & Roadmap
 
-**Stable (Offline RL)**: ATLAS SFT+RL training, vLLM server integration, Hydra configuration system
+The current stable implementation includes ATLAS SFT+RL training, vLLM server integration, and the Hydra configuration system. Future development toward the full Compound Intelligence framework will incorporate persistent organizational memory, online learning loops, and cross-agent knowledge transfer, with ATLAS serving as the foundational outer loop training component for continuously learning agent systems.
 
-**[Unverified/Roadmap] (Online + Persistent Memory)**: Full Compound Intelligence framework with persistent organizational memory, online learning loops, and cross-agent knowledge transfer. ATLAS serves as the foundational outer loop training component for continuously learning agent systems.
-
-## Performance Results
-
-Verified results from our latest training run demonstrate non-degradation teaching with significant efficiency gains.
-
-[Diagram Placeholder: Performance metrics visualization showing accuracy gains across problem difficulty levels]
-
-**Environment**: 4×H100 GPUs, [Arc-Intelligence/Arc-ATLAS-Teach-v0](https://huggingface.co/datasets/Arc-Intelligence/Arc-ATLAS-Teach-v0) dataset, seed=42
-**Models**: [ATLAS-8B-Thinking](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Thinking), [ATLAS-8B-Instruct](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct)
-
-| Metric | Teacher+Student | Student Alone | Delta |
-|--------|----------------|---------------|-------|
-| Average accuracy | +0.1573 | baseline | **+15.73%** |
-| Max per-item improvement | +0.296 | - | **+29.6%** |
-| Token efficiency | 0.372 | - | (avg. efficiency term) |
-| Generation time (32 samples) | ~1:10 | ~1:21 | **-13.6%** |
-| Average length | ~2k tokens | ~4k tokens | **-50%** |
-| Completion rate | ~100% | ~69% | **+31%** |
-
-**Key Findings**: Teacher+student achieves higher accuracy with fewer tokens. Near-100% completion rate vs. ~69% student-alone. Consistent improvements across problem difficulty levels.
-
-**Reproduce Results:**
+Results can be reproduced using:
 ```bash
 # SFT Warmup  
 scripts/launch.sh 4 configs/run/teacher_sft.yaml dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0
@@ -207,7 +183,10 @@ scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
   dataset_id_or_path=Arc-Intelligence/Arc-ATLAS-Teach-v0 num_generations=32
 ```
 
-See [docs/benchmarks/](docs/benchmarks/) for complete methodology and [docs/benchmarks/reproduction.md](docs/benchmarks/) for detailed reproduction steps.
+**Environment**: 4×H100 GPUs, [Arc-Intelligence/Arc-ATLAS-Teach-v0](https://huggingface.co/datasets/Arc-Intelligence/Arc-ATLAS-Teach-v0) dataset, seed=42  
+**Models**: [ATLAS-8B-Thinking](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Thinking), [ATLAS-8B-Instruct](https://huggingface.co/Arc-Intelligence/ATLAS-8B-Instruct)
+
+See [docs/benchmarks/](docs/benchmarks/) for complete methodology and detailed performance analysis.
 
 ## Citation
 
