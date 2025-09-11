@@ -54,7 +54,6 @@ The protocol achieves reliable performance improvements through diagnostic probi
 
 The protocol operates in two phases. First, diagnostic probing allows the teacher to assess student understanding through minimal interaction (≤50 tokens), revealing capability levels without requiring complete solutions. Second, adaptive teaching provides conditional guidance tailored to the diagnosed capability—strong students receive minimal intervention to avoid degradation while weak students receive comprehensive scaffolding and support. The reward system assigns zero reward for performance degradation and positive rewards for improvements with efficiency bonuses, encouraging helpful teaching while preventing harmful interventions.
 
-This adaptive teaching system serves as the foundation for our broader Compound Intelligence framework, which combines persistent memory with online learning loops for continuously improving agent systems.
 
 ---
 
@@ -111,7 +110,7 @@ python -m pip install --upgrade -r requirements-py311.txt  # or requirements-py3
 
 ## Training Pipeline
 
-RCL uses a two-phase SFT→RL pipeline managed via [Hydra](https://hydra.cc/) configs. Training is scalable from single GPU to distributed setups with DeepSpeed.
+ATLAS uses a two-phase SFT→RL pipeline managed via [Hydra](https://hydra.cc/) configs. Training is scalable from single GPU to distributed setups with DeepSpeed.
 
 Basic training follows a two-phase approach:
 
@@ -142,11 +141,7 @@ The system defaults to the [ATLAS-8B-Thinking](https://huggingface.co/Arc-Intell
 
 See [docs/concepts/adaptive-teaching.md](docs/concepts/) for detailed protocol and reward design.
 
-### Learning Metrics
-
-The framework introduces specialized metrics for measuring learning effectiveness: Learning Rate (LR) captures performance change per interaction, Non-Degradation Rate (NDR) measures interactions that maintain or improve performance with a target of ≥99%, and Teaching Efficiency Score (TES) quantifies performance gain per teaching token.
-
-Student training utilizes adaptive teaching outputs with automatic complexity adjustment based on model size. Complete evaluation protocols are documented in [docs/concepts/evaluation.md](docs/concepts/). Access to models and datasets requires `huggingface-cli login`. W&B logging can be disabled by setting `report_to: null`. Setup details are available in [docs/getting-started/](docs/getting-started/).
+Access to models and datasets requires `huggingface-cli login`. W&B logging can be disabled by setting `report_to: null`. Setup details are available in [docs/getting-started/](docs/getting-started/).
 
 ## Core Concepts
 
@@ -180,10 +175,6 @@ Server health can be verified with `curl http://$vllm_host:$vllm_port/health`. P
 
 For comprehensive troubleshooting, installation guides, and deployment instructions, see [docs/](docs/).
 
-## Status & Roadmap
-
-The current stable implementation includes ATLAS SFT+RL training, vLLM server integration, and the Hydra configuration system. Future development toward the full Compound Intelligence framework will incorporate persistent organizational memory, online learning loops, and cross-agent knowledge transfer, with ATLAS serving as the foundational outer loop training component for continuously learning agent systems.
-
 Results can be reproduced using:
 ```bash
 # SFT Warmup  
@@ -205,9 +196,9 @@ See [docs/benchmarks/](docs/benchmarks/) for complete methodology and detailed p
 If you find our work or this repository useful and want to cite our work, you can use the following:
 
 ```bibtex
-@article{rcl2025,
-  title     = {Reinforcement Collaborative Learning: Adaptive Teaching at Scale},
-  author    = {Author Names},
+@article{atlas2025,
+  title     = {ATLAS: Adaptive Training Methodology for RL},
+  author    = {Arc Intelligence},
   journal   = {arXiv preprint},
   year      = {2025}
 }
