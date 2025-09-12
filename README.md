@@ -84,8 +84,8 @@ bash scripts/install_py312.sh
 
 - Examples: Quick inference demos and Colab notebooks in `examples/README.md`
 - Colab: Math demo and Code demo
-  - Math: https://colab.research.google.com/github/Arc-Intelligence/RCL/blob/main/examples/math_reasoning_demo.ipynb
-  - Code: https://colab.research.google.com/github/Arc-Intelligence/RCL/blob/main/examples/code_generation_demo.ipynb
+  - Math: https://colab.research.google.com/github/Arc-Computer/ATLAS/blob/main/examples/math_reasoning_demo.ipynb
+  - Code: https://colab.research.google.com/github/Arc-Computer/ATLAS/blob/main/examples/code_generation_demo.ipynb
 
 Run minimal smoke tests on a single GPU to validate your setup.
 
