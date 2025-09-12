@@ -99,7 +99,7 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 **Reward Design**:
 - Zero reward for performance degradation
 - Positive rewards for improvements with efficiency bonuses
-- Configurable via `degradation_penalty_multiplier` and `efficiency_weight`
+- Configurable via `efficiency_weight`
 
 **vLLM Integration**:
 - FastAPI server endpoints for health checks and generation
@@ -135,7 +135,7 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 
 ### Concepts
 - [Adaptive Learning](concepts/adaptive-learning.md) - Two-pass diagnostic protocol and learning strategy
-- [Reward Design](concepts/reward-design.md) - Learning effectiveness metrics and asymmetric rewards
+- [Reward Design](concepts/reward-design.md) - Learning effectiveness metrics and reward structure
 
 ### Deployment
 - [Inference](deployment/inference.md) - Production deployment patterns

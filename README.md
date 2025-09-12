@@ -54,7 +54,7 @@ The protocol achieves reliable performance improvements through diagnostic probi
 <img src="public/adaptive-teaching.png" alt="ATLAS Two-Pass Inference Protocol - Diagnostic probing followed by adaptive teaching based on capability assessment" width="700" style="border-radius: 12px;">
 </div>
 
-The protocol operates in two phases. First, diagnostic probing allows the teacher to assess student understanding through minimal interaction (≤50 tokens), revealing capability levels without requiring complete solutions. Second, adaptive teaching provides conditional guidance tailored to the diagnosed capability—strong students receive minimal intervention to avoid degradation while weak students receive comprehensive scaffolding and support. The reward system assigns zero reward for performance degradation and positive rewards for improvements with efficiency bonuses, encouraging helpful teaching while preventing harmful interventions.
+The protocol operates in two phases. First, diagnostic probing allows the teacher to assess student understanding through minimal interaction, revealing capability levels without requiring complete solutions. Second, adaptive teaching provides conditional guidance tailored to the diagnosed capability—strong students receive minimal intervention to avoid degradation while weak students receive comprehensive scaffolding and support. The reward system assigns zero reward for performance degradation and positive rewards for improvements with efficiency bonuses, encouraging helpful teaching while preventing harmful interventions.
 
 
 ---
@@ -81,6 +81,11 @@ bash scripts/install_py312.sh
 ---
 
 ## Quickstart
+
+- Examples: Quick inference demos and Colab notebooks in `examples/README.md`
+- Colab: Math demo and Code demo
+  - Math: https://colab.research.google.com/github/Arc-Intelligence/RCL/blob/main/examples/math_reasoning_demo.ipynb
+  - Code: https://colab.research.google.com/github/Arc-Intelligence/RCL/blob/main/examples/code_generation_demo.ipynb
 
 Run minimal smoke tests on a single GPU to validate your setup.
 
@@ -114,7 +119,7 @@ scripts/launch.sh ${NUM_OF_GPUS} configs/run/teacher_sft.yaml ${hydra_args}
 scripts/launch_with_server.sh ${NUM_VLLM_GPUS} ${NUM_TRAINING_GPUS} configs/run/teacher_rcl.yaml ${hydra_args}
 ```
 
-Key parameters include `degradation_penalty_multiplier`, `dataset_id_or_path`, and `model_name_or_path`. Memory optimization can be achieved by adding `offload` to commands. All results are saved to `results/`.
+Key parameters include `dataset_id_or_path` and `model_name_or_path`. Memory optimization can be achieved by adding `offload` to commands. All results are saved to `results/`.
 
 See [docs/guides/distributed-training.md](docs/guides/) for multi-GPU setup and [docs/guides/rl-training.md](docs/guides/) for detailed RL parameters.
 
@@ -149,7 +154,7 @@ Access to models and datasets requires `hf auth login`. W&B logging can be disab
 
 Run recipes in `configs/run/*.yaml` contain complete experiment configurations built from modular components in `configs/{data,model,trainer}/`. Common parameter overrides include `dataset_id_or_path=my/custom/dataset` and `model_name_or_path=my/base/model`.
 
-Reward configuration through `configs/trainer/reward/adaptive_teaching.yaml` controls teaching behavior via `degradation_penalty_multiplier`, `efficiency_weight`, and probe token limits. Detailed reward design principles are documented in [docs/concepts/](docs/concepts/).
+Reward configuration through `configs/trainer/reward/adaptive_teaching.yaml` controls teaching behavior via `efficiency_weight` and probe token limits. The reward system uses zero rewards for degradation and positive rewards for improvements. Detailed reward design principles are documented in [docs/concepts/](docs/concepts/).
 
 ## Project Structure
 

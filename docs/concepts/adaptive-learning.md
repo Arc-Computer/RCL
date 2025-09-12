@@ -4,29 +4,34 @@ ATLAS moves beyond "reasoning alignment" toward pedagogical effectiveness. The t
 
 ## Diagnostic Probing
 
-- A short probe (≤50 tokens) elicits the student's approach and reveals capability.
-- See `GRPOConfig.max_probe_tokens` and templates in `TeacherGRPOTrainer`.
+- A diagnostic probe elicits the student's approach and reveals capability
+- Token limit configured via `max_probe_tokens` (default: 500 tokens)
+- See `GRPOConfig.max_probe_tokens` and templates in `TeacherGRPOTrainer`
 
 ## Targeted Guidance
 
-- The teacher model conditions on the probe to deliver calibrated help (hints, scaffolding, corrections) only as needed.
-- Guidance must be concise and effective; excessive intervention is discouraged.
+- The teacher model conditions on the probe to deliver calibrated help (hints, scaffolding, corrections) only as needed
+- Guidance must be concise and effective; excessive intervention is discouraged
+- Efficiency bonus rewards shorter, more targeted teaching
 
 ## Reward Signal
 
-- Asymmetric: degradation is penalized more than improvements are rewarded.
-- See `configs/trainer/reward/adaptive_teaching.yaml`:
+The reward system uses a simple but effective approach:
 
 ```yaml
-degradation_penalty_multiplier: 2.0
-efficiency_weight: 1.0
-max_probe_tokens: 50
+# From configs/trainer/reward/adaptive_teaching.yaml
+degradation_penalty_multiplier: 2.0  # Configured but not used in current implementation
+efficiency_weight: 1.0                # Scales the efficiency bonus  
+max_probe_tokens: 500                 # Token limit for diagnostic probing
 ```
 
-Implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward` computes performance deltas vs. a baseline (no guidance), applies a 2× penalty for degradation, and adds a length-aware efficiency bonus.
+Implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward` computes performance deltas vs. a baseline (no guidance) and:
+- Returns 0 reward for performance degradation (preventing harmful interventions)
+- Rewards improvements with `delta × (1 + efficiency_bonus)`
+- Gives partial reward (0.5) for maintaining correct performance with efficient teaching
 
 ## See Also
 
-- [Reward Design](reward-design.md) - Details on asymmetric rewards and efficiency bonuses
+- [Reward Design](reward-design.md) - Details on reward structure and efficiency bonuses
 - [RL Training](../guides/rl-training.md) - GRPO implementation with adaptive learning
 - [Performance Results](../../README.md#performance-results) - Complete results and reproducibility

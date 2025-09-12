@@ -327,7 +327,10 @@ def load_atlas_models(
     
     try:
         print("Loading student model...")
-        student_tokenizer = AutoTokenizer.from_pretrained(student_model_name)
+        student_tokenizer = AutoTokenizer.from_pretrained(
+            student_model_name,
+            trust_remote_code=True
+        )
         student_model = AutoModelForCausalLM.from_pretrained(
             student_model_name,
             device_map=device_map,
@@ -351,7 +354,10 @@ def load_atlas_models(
         raise
     
     print("Loading ATLAS-8B-Thinking teacher...")
-    thinking_tokenizer = AutoTokenizer.from_pretrained(teacher_thinking_name)
+    thinking_tokenizer = AutoTokenizer.from_pretrained(
+        teacher_thinking_name,
+        trust_remote_code=True
+    )
     thinking_model = AutoModelForCausalLM.from_pretrained(
         teacher_thinking_name,
         device_map=device_map,
@@ -360,7 +366,10 @@ def load_atlas_models(
     )
     
     print("Loading ATLAS-8B-Instruct teacher...")
-    instruct_tokenizer = AutoTokenizer.from_pretrained(teacher_instruct_name)
+    instruct_tokenizer = AutoTokenizer.from_pretrained(
+        teacher_instruct_name,
+        trust_remote_code=True
+    )
     instruct_model = AutoModelForCausalLM.from_pretrained(
         teacher_instruct_name,
         device_map=device_map,
