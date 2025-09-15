@@ -52,6 +52,10 @@ def run_gepa_optimization(
     reflection_lm: str,
     trace_storage_path: str,
     seed_prompts: Dict[str, str],
+    all_prompts: Dict[str, str],
+    gepa_config: Dict[str, any],
+    generation_config: Dict[str, any],
+    wandb_config: Optional[Dict[str, any]] = None,
     use_vllm_client: bool = False,
     vllm_host: Optional[str] = None,
     vllm_port: Optional[int] = None,
@@ -62,6 +66,9 @@ def run_gepa_optimization(
         student_model=student_model,
         reward_function=None,
         trace_storage_path=trace_storage_path,
+        all_prompts=all_prompts,
+        generation_config=generation_config,
+        max_litellm_workers=generation_config.get('max_litellm_workers', 10),
         use_vllm_client=use_vllm_client,
         vllm_host=vllm_host,
         vllm_port=vllm_port,
@@ -74,21 +81,19 @@ def run_gepa_optimization(
         adapter=adapter,
         reflection_lm=reflection_lm,
         max_metric_calls=max_metric_calls,
-        candidate_selection_strategy="pareto",
-        skip_perfect_score=True,
-        reflection_minibatch_size=3,
-        perfect_score=1.0,
-        module_selector="round_robin",
-        display_progress_bar=True,
+        **gepa_config
     )
     
     return result
 
 
-def save_optimized_prompts(result, output_path: str):
+def save_optimized_prompts(result, output_path: str, initial_score: float = None):
     output_data = {
         "best_candidate": result.best_candidate,
         "best_score": float(result.best_score) if hasattr(result, 'best_score') else None,
+        "initial_score": initial_score,
+        "improvement": float(result.best_score - initial_score) if initial_score and hasattr(result, 'best_score') else None,
+        "improvement_percentage": float((result.best_score - initial_score) / initial_score * 100) if initial_score and hasattr(result, 'best_score') and initial_score > 0 else None,
         "pareto_frontier": result.pareto_frontier if hasattr(result, 'pareto_frontier') else None,
     }
     
@@ -97,7 +102,11 @@ def save_optimized_prompts(result, output_path: str):
     
     print(f"\nOptimized prompts saved to: {output_path}")
     if output_data.get('best_score') is not None:
-        print(f"Best score achieved: {output_data['best_score']}")
+        print(f"Best score achieved: {output_data['best_score']:.4f}")
+    if output_data.get('initial_score') is not None:
+        print(f"Initial score: {output_data['initial_score']:.4f}")
+    if output_data.get('improvement_percentage') is not None:
+        print(f"Performance gain: {output_data['improvement_percentage']:.2f}%")
 
 
 def main():
@@ -189,6 +198,14 @@ def main():
     if not seed_prompts:
         parser.error(f"No seed_prompts found in config file: {args.config}")
     
+    fixed_prompts = config.get('fixed_prompts', {})
+    all_prompts = {**seed_prompts, **fixed_prompts}
+    
+    gepa_config = config.get('gepa_config', {})
+    wandb_config = config.get('wandb', {})
+    generation_config = config.get('generation_config', {})
+    generation_config['max_litellm_workers'] = config.get('max_litellm_workers', 10)
+    
     print("Loading datasets...")
     if args.trainset == "arc-atlas-rl":
         trainset = load_arc_atlas_dataset_from_hf()
@@ -198,6 +215,7 @@ def main():
         valset = load_dataset_from_jsonl(args.valset) if args.valset else None
     
     print(f"Loaded {len(trainset)} training examples")
+    
     if valset:
         print(f"Loaded {len(valset)} validation examples")
     
@@ -224,12 +242,17 @@ def main():
         reflection_lm=args.reflection_lm,
         trace_storage_path=args.trace_storage,
         seed_prompts=seed_prompts,
+        all_prompts=all_prompts,
+        gepa_config=gepa_config,
+        generation_config=generation_config,
+        wandb_config=wandb_config,
         use_vllm_client=args.use_vllm_client,
         vllm_host=args.vllm_host,
         vllm_port=args.vllm_port,
     )
     
-    save_optimized_prompts(result, args.output)
+    initial_score = result.val_aggregate_scores[0] if result.val_aggregate_scores else None
+    save_optimized_prompts(result, args.output, initial_score=initial_score)
     
     print("\n=== Optimized Templates ===")
     for key, value in result.best_candidate.items():
