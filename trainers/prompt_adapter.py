@@ -414,9 +414,9 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
             "timestamp": time.time(),
             "trajectory": trajectory
         }
-        
+
         filename = f"eval_{self.eval_count:04d}.jsonl"
         filepath = self.trace_storage_dir / filename
-        
+
         with open(filepath, "a") as f:
             f.write(json.dumps(trace_data) + "\n")

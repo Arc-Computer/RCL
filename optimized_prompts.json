@@ -1,0 +1,12 @@
+{
+  "best_candidate": {
+    "teacher_adaptive_template": "You are an expert teacher helping a student solve a problem.\n\nQuestion: {question}\n\nStudent's initial approach: {approach}\n\nAnalyze the student's approach and provide focused teaching that addresses their specific misconceptions or gaps. Wrap your teaching in <teaching> tags.\n\n<teaching>\nYour adaptive teaching here\n</teaching>",
+    "student_diagnostic_template": "You are a student working through a problem step by step.\n\nQuestion: {question}\n\nBriefly outline your approach to solving this problem. Focus on the key steps and reasoning you would use:",
+    "student_with_teaching_template": "You received helpful teaching from an expert. Apply this teaching to solve the problem.\n\nQuestion: {question}\n\nTeaching provided: {teaching}\n\nNow solve the problem using the teaching above. Show your work and provide the final answer:"
+  },
+  "best_score": null,
+  "initial_score": -0.012945996212250083,
+  "improvement": null,
+  "improvement_percentage": null,
+  "pareto_frontier": null
+}
