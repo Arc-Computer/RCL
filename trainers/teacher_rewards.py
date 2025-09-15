@@ -12,7 +12,7 @@ from .teacher_base import (
     find_valid_subsequence, find_first_last_one_idxs, log_tensor_info,
     is_tensor, TeacherTrainer,
 )
-import re
+from .extraction_utils import ATLASExtractionUtils
 import random
 
 
@@ -93,37 +93,10 @@ class AdaptiveTeachingReward(TeacherReward):
             tokenizer=tokenizer,
         )
     
-    def _normalize_number(self, num_str):
-        """Normalize number string for comparison"""
-        if not num_str:
-            return ""
-        num_str = str(num_str).strip().rstrip('.')
-        try:
-            num = float(num_str)
-            if num == int(num):
-                return str(int(num))
-            else:
-                return f"{num:.2f}"
-        except:
-            return num_str.strip()
     
     @torch.no_grad()
     def evaluate_student_performance(self, question, solution, ground_truth):
-        if not ground_truth:
-            return 0.0
-        
-        solution_normalized = self._normalize_number(solution)
-        ground_truth_normalized = self._normalize_number(ground_truth)
-        
-        if solution_normalized == ground_truth_normalized:
-            return 1.0
-        
-        solution_lower = str(solution).strip().lower()
-        ground_truth_lower = str(ground_truth).strip().lower()
-        if solution_lower == ground_truth_lower:
-            return 1.0
-        
-        return 0.0
+        return 1.0 if ATLASExtractionUtils.check_correctness(solution, ground_truth) else 0.0
     
     def __call__(
         self,
@@ -155,27 +128,22 @@ class AdaptiveTeachingReward(TeacherReward):
                 question, baseline_solution, ground_truth
             )
             
-            teaching_match = re.search(r'<teaching>(.*?)</teaching>', teacher_completion, re.DOTALL)
-            if teaching_match:
-                teaching_content = teaching_match.group(1).strip()
+            baseline_length = len(self.tokenizer.encode(baseline_solution))
+            student_length = len(self.tokenizer.encode(solution))
+            
+            if baseline_length > 0 and student_length < baseline_length:
+                efficiency = (baseline_length - student_length) / baseline_length
             else:
-                teaching_content = teacher_completion
+                efficiency = 0.0
             
-            teaching_length = len(self.tokenizer.encode(teaching_content))
-            
-            performance_delta = performance_with_teaching - performance_without_teaching
-            
-            if performance_delta < 0:
+            if performance_with_teaching and not performance_without_teaching:
+                reward = 1.0 + efficiency
+            elif performance_with_teaching and performance_without_teaching:
+                reward = efficiency
+            elif not performance_with_teaching and performance_without_teaching:
+                reward = -1.0
+            else:
                 reward = 0.0
-            elif performance_delta == 0:
-                if performance_with_teaching == 1.0:
-                    efficiency_bonus = 100.0 / (100.0 + teaching_length)
-                    reward = 0.5 * (1.0 + self.efficiency_weight * efficiency_bonus)
-                else:
-                    reward = 0.0
-            else:
-                efficiency_bonus = 100.0 / (100.0 + teaching_length)
-                reward = performance_delta * (1.0 + self.efficiency_weight * efficiency_bonus)
             
             rewards.append(reward)
         

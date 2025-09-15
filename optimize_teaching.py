@@ -1,0 +1,241 @@
+import argparse
+import json
+import os
+from pathlib import Path
+from typing import Dict, List, Optional, Union, Callable
+
+import gepa
+from trainers.prompt_adapter import ATLASGEPAAdapter, ATLASDataInst
+from datasets import load_dataset
+
+
+def load_arc_atlas_dataset_from_hf() -> List[ATLASDataInst]:
+    dataset = load_dataset("Arc-Intelligence/Arc-ATLAS-Teach-v0", data_files="training/rl.jsonl", split="train")
+    result = []
+    for example in dataset:
+        result.append({
+            "question": example["prompt"],
+            "ground_truth": example["ground_truth"],
+            "additional_context": {},
+        })
+    return result
+
+
+def load_dataset_from_jsonl(path: str) -> List[ATLASDataInst]:
+    dataset = []
+    with open(path, 'r') as f:
+        for line in f:
+            data = json.loads(line)
+            dataset.append({
+                "question": data.get("question", data.get("prompt", "")),
+                "ground_truth": data.get("ground_truth", data.get("answer", "")),
+                "additional_context": data.get("additional_context", {}),
+            })
+    return dataset
+
+
+def load_api_model(model_name: str) -> Union[str, Callable]:
+    if model_name.startswith("gpt-") or model_name.startswith("claude-"):
+        return model_name
+    elif "/" in model_name:
+        return model_name
+    else:
+        return model_name
+
+
+def run_gepa_optimization(
+    teacher_model: Union[str, Callable],
+    student_model: Union[str, Callable],
+    trainset: List[ATLASDataInst],
+    valset: Optional[List[ATLASDataInst]],
+    max_metric_calls: int,
+    reflection_lm: str,
+    trace_storage_path: str,
+    seed_prompts: Dict[str, str],
+    use_vllm_client: bool = False,
+    vllm_host: Optional[str] = None,
+    vllm_port: Optional[int] = None,
+) -> Dict:
+    
+    adapter = ATLASGEPAAdapter(
+        teacher_model=teacher_model,
+        student_model=student_model,
+        reward_function=None,
+        trace_storage_path=trace_storage_path,
+        use_vllm_client=use_vllm_client,
+        vllm_host=vllm_host,
+        vllm_port=vllm_port,
+    )
+    
+    result = gepa.optimize(
+        seed_candidate=seed_prompts,
+        trainset=trainset,
+        valset=valset if valset else trainset,
+        adapter=adapter,
+        reflection_lm=reflection_lm,
+        max_metric_calls=max_metric_calls,
+        candidate_selection_strategy="pareto",
+        skip_perfect_score=True,
+        reflection_minibatch_size=3,
+        perfect_score=1.0,
+        module_selector="round_robin",
+        display_progress_bar=True,
+    )
+    
+    return result
+
+
+def save_optimized_prompts(result, output_path: str):
+    output_data = {
+        "best_candidate": result.best_candidate,
+        "best_score": float(result.best_score) if hasattr(result, 'best_score') else None,
+        "pareto_frontier": result.pareto_frontier if hasattr(result, 'pareto_frontier') else None,
+    }
+    
+    with open(output_path, 'w') as f:
+        json.dump(output_data, f, indent=2)
+    
+    print(f"\nOptimized prompts saved to: {output_path}")
+    if output_data.get('best_score') is not None:
+        print(f"Best score achieved: {output_data['best_score']}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Optimize ATLAS teaching prompts using reflective evolution")
+    
+    parser.add_argument(
+        "--trainset",
+        type=str,
+        required=True,
+        help="Path to training dataset (JSONL format)",
+    )
+    parser.add_argument(
+        "--valset",
+        type=str,
+        default=None,
+        help="Path to validation dataset (JSONL format)",
+    )
+    parser.add_argument(
+        "--student-model",
+        type=str,
+        required=True,
+        help="Student model",
+    )
+    parser.add_argument(
+        "--teacher-model",
+        type=str,
+        required=True,
+        help="Teacher model",
+    )
+    parser.add_argument(
+        "--reflection-lm",
+        type=str,
+        default="gpt-5",
+        help="Language model for GEPA reflection",
+    )
+    parser.add_argument(
+        "--max-metric-calls",
+        type=int,
+        default=150,
+        help="Maximum number of metric evaluations",
+    )
+    parser.add_argument(
+        "--trace-storage",
+        type=str,
+        default="traces/gepa_traces.jsonl",
+        help="Path to store execution traces",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="optimized_prompts.json",
+        help="Path to save optimized prompts",
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="configs/optimize/default.yaml",
+        help="Path to configuration file with seed prompts",
+    )
+    parser.add_argument(
+        "--use-vllm-client",
+        action="store_true",
+        help="Use vLLM client for generation",
+    )
+    parser.add_argument(
+        "--vllm-host",
+        type=str,
+        default=None,
+        help="vLLM server host (required if --use-vllm-client)",
+    )
+    parser.add_argument(
+        "--vllm-port",
+        type=int,
+        default=None,
+        help="vLLM server port (required if --use-vllm-client)",
+    )
+    
+    args = parser.parse_args()
+    
+    if args.use_vllm_client and (not args.vllm_host or not args.vllm_port):
+        parser.error("--vllm-host and --vllm-port are required when using --use-vllm-client")
+    
+    print("Loading configuration...")
+    import yaml
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    seed_prompts = config.get('seed_prompts', {})
+    if not seed_prompts:
+        parser.error(f"No seed_prompts found in config file: {args.config}")
+    
+    print("Loading datasets...")
+    if args.trainset == "arc-atlas-rl":
+        trainset = load_arc_atlas_dataset_from_hf()
+        valset = None
+    else:
+        trainset = load_dataset_from_jsonl(args.trainset)
+        valset = load_dataset_from_jsonl(args.valset) if args.valset else None
+    
+    print(f"Loaded {len(trainset)} training examples")
+    if valset:
+        print(f"Loaded {len(valset)} validation examples")
+    
+    teacher_model = load_api_model(args.teacher_model)
+    student_model = load_api_model(args.student_model)
+    
+    print(f"\nTeacher model: {args.teacher_model}")
+    print(f"Student model: {args.student_model}")
+    print(f"Reflection LM: {args.reflection_lm}")
+    print(f"Max metric calls: {args.max_metric_calls}")
+    print(f"Trace storage: {args.trace_storage}")
+    
+    if args.use_vllm_client:
+        print(f"Using vLLM client at {args.vllm_host}:{args.vllm_port}")
+    
+    print("\nStarting GEPA optimization...")
+    
+    result = run_gepa_optimization(
+        teacher_model=teacher_model,
+        student_model=student_model,
+        trainset=trainset,
+        valset=valset,
+        max_metric_calls=args.max_metric_calls,
+        reflection_lm=args.reflection_lm,
+        trace_storage_path=args.trace_storage,
+        seed_prompts=seed_prompts,
+        use_vllm_client=args.use_vllm_client,
+        vllm_host=args.vllm_host,
+        vllm_port=args.vllm_port,
+    )
+    
+    save_optimized_prompts(result, args.output)
+    
+    print("\n=== Optimized Templates ===")
+    for key, value in result.best_candidate.items():
+        print(f"\n{key}:")
+        print(value)
+
+
+if __name__ == "__main__":
+    main()
