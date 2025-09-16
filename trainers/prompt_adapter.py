@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from string import Template
 from typing import Any, Callable, Dict, List, Optional, TypedDict, Union
 
 from gepa.core.adapter import GEPAAdapter, EvaluationBatch
@@ -30,7 +31,21 @@ class ATLASRolloutOutput(TypedDict):
 
 
 class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutOutput]):
-    
+
+    def _safe_format(self, template_str: str, **kwargs) -> str:
+        """
+        Safe string formatting that handles content with curly braces.
+        Converts {placeholder} syntax to $placeholder for Template class.
+        """
+        converted_template = template_str
+        for key in kwargs:
+            placeholder_pattern = '{' + key + '}'
+            replacement_pattern = '$' + key
+            converted_template = converted_template.replace(placeholder_pattern, replacement_pattern)
+
+        template = Template(converted_template)
+        return template.safe_substitute(**kwargs)
+
     def __init__(
         self,
         teacher_model: Union[str, Callable],
@@ -38,7 +53,7 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         reward_function: Optional[Callable] = None,
         trace_storage_path: str = "traces/gepa_traces.jsonl",
         all_prompts: Optional[Dict[str, str]] = None,
-        generation_config: Optional[Dict[str, any]] = None,
+        generation_config: Optional[Dict[str, Any]] = None,
         max_litellm_workers: int = 10,
         use_vllm_client: bool = False,
         vllm_host: Optional[str] = None,
@@ -55,49 +70,47 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         self.all_prompts = all_prompts or {}
         self.generation_config = generation_config or {}
         
-        if isinstance(teacher_model, str):
-            if use_vllm_client and vllm_host and vllm_port:
-                from trainers.vllm_client import VLLMClient
-                vllm_client = VLLMClient(host=vllm_host, server_port=vllm_port)
-                self.teacher_model = lambda prompts: vllm_client.generate(
-                    prompts=prompts if isinstance(prompts, list) else [prompts],
-                    n=1, 
-                    temperature=self.generation_config['temperature'], 
-                    max_tokens=self.generation_config['max_tokens']
-                )[0] if isinstance(prompts, str) else [ids[0] for ids in vllm_client.generate(
-                    prompts=prompts, 
-                    n=1, 
-                    temperature=self.generation_config['temperature'], 
-                    max_tokens=self.generation_config['max_tokens']
-                )]
+        if use_vllm_client and vllm_host and vllm_port:
+            from trainers.vllm_client import VLLMClient
+            self.vllm_client = VLLMClient(host=vllm_host, server_port=vllm_port)
+
+            def _create_vllm_generator(client):
+                def generate(prompts):
+                    is_single = isinstance(prompts, str)
+                    if is_single:
+                        prompts = [prompts]
+                    results = client.generate(
+                        prompts=prompts,
+                        n=1,
+                        temperature=self.generation_config['temperature'],
+                        max_tokens=self.generation_config['max_tokens']
+                    )
+                    return results[0][0] if is_single else [r[0] for r in results]
+                return generate
+
+            if isinstance(teacher_model, str):
+                self.teacher_model = _create_vllm_generator(self.vllm_client)
             else:
+                self.teacher_model = teacher_model
+
+            if isinstance(student_model, str):
+                self.student_model = _create_vllm_generator(self.vllm_client)
+            else:
+                self.student_model = student_model
+        else:
+            if isinstance(teacher_model, str):
                 import litellm
                 self.teacher_model = lambda prompts: self._litellm_generate(litellm, teacher_model, prompts)
-        else:
-            self.teacher_model = teacher_model
-        
-        self.student_model_str = student_model if isinstance(student_model, str) else None
-        
-        if isinstance(student_model, str):
-            if use_vllm_client and vllm_host and vllm_port:
-                from trainers.vllm_client import VLLMClient
-                vllm_client = VLLMClient(host=vllm_host, server_port=vllm_port) if not hasattr(self, 'vllm_client') else self.vllm_client
-                self.student_model = lambda prompts: vllm_client.generate(
-                    prompts=prompts if isinstance(prompts, list) else [prompts],
-                    n=1, 
-                    temperature=self.generation_config['temperature'], 
-                    max_tokens=self.generation_config['max_tokens']
-                )[0] if isinstance(prompts, str) else [ids[0] for ids in vllm_client.generate(
-                    prompts=prompts, 
-                    n=1, 
-                    temperature=self.generation_config['temperature'], 
-                    max_tokens=self.generation_config['max_tokens']
-                )]
             else:
+                self.teacher_model = teacher_model
+
+            if isinstance(student_model, str):
                 import litellm
                 self.student_model = lambda prompts: self._litellm_generate(litellm, student_model, prompts)
-        else:
-            self.student_model = student_model
+            else:
+                self.student_model = student_model
+
+        self.student_model_str = student_model if isinstance(student_model, str) else None
     
     def _generate_with_student(self, prompts, max_tokens=None):
         if max_tokens is None:
@@ -232,7 +245,7 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         student_with_teaching_template = candidate.get("student_with_teaching_template") or self.all_prompts.get("student_with_teaching_template")
         
         baseline_prompts = [
-            student_baseline_template.format(question=q) for q in questions
+            self._safe_format(student_baseline_template, question=q) for q in questions
         ]
         print(f"[Adapter] Getting baseline solutions from student...")
         baseline_completions = self.student_model(baseline_prompts)
@@ -241,7 +254,7 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         print(f"[Adapter] Got {len(baseline_completions)} baseline solutions")
         
         approach_prompts = [
-            student_diagnostic_template.format(question=q) for q in questions
+            self._safe_format(student_diagnostic_template, question=q) for q in questions
         ]
         diagnostic_max_tokens = self.generation_config['diagnostic_max_tokens']
         print(f"[Adapter] Getting student diagnostic approaches (max {diagnostic_max_tokens} tokens)...")
@@ -251,7 +264,7 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         print(f"[Adapter] Got {len(student_approaches)} approaches")
         
         teacher_prompts = [
-            teacher_adaptive_template.format(question=q, approach=a)
+            self._safe_format(teacher_adaptive_template, question=q, approach=a)
             for q, a in zip(questions, student_approaches)
         ]
         print(f"[Adapter] Getting teacher responses...")
@@ -266,7 +279,7 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         ]
         
         student_with_teaching_prompts = [
-            student_with_teaching_template.format(question=q, teaching=t)
+            self._safe_format(student_with_teaching_template, question=q, teaching=t)
             for q, t in zip(questions, teaching_contents)
         ]
         student_with_teaching_completions = self.student_model(student_with_teaching_prompts)
@@ -357,16 +370,49 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         eval_batch: EvaluationBatch[ATLASTrajectory, ATLASRolloutOutput],
         components_to_update: List[str],
     ) -> Dict[str, List[Dict[str, Any]]]:
-        
+
         reflective_data = {}
-        
+
+        template_roles = {
+            "teacher_adaptive_template": {
+                "role": "TEACHER/TUTOR",
+                "purpose": "Analyzes student approach and provides adaptive teaching guidance that always leads to performance improvement",
+                "input": "Question and Student's approach",
+                "output": "Teaching guidance wrapped in <teaching> tags"
+            },
+            "student_diagnostic_template": {
+                "role": "STUDENT",
+                "purpose": "Shows initial problem-solving approach which tells the teacher how you are going to solve this problem listing all steps. Complete approach under 500 tokens",
+                "input": "Question only",
+                "output": "Student's step-by-step approach to solving the problem"
+            },
+            "student_with_teaching_template": {
+                "role": "STUDENT",
+                "purpose": "Student applies received teaching to complete the problem and provide the final answer within <solution> tags",
+                "input": "Question and Teaching received",
+                "output": "Student's solution using the teaching, with final answer"
+            }
+        }
+
         for component in components_to_update:
             items = []
-            
+
+            template_info = template_roles.get(component, {})
+            if template_info:
+                context_header = {
+                    "TEMPLATE_BEING_OPTIMIZED": component,
+                    "ROLE": template_info["role"],
+                    "PURPOSE": template_info["purpose"],
+                    "EXPECTED_INPUT": template_info["input"],
+                    "EXPECTED_OUTPUT": template_info["output"],
+                    "OPTIMIZATION_GOAL": f"Improve this {template_info['role']} prompt to better achieve: {template_info['purpose']}"
+                }
+                items.append({"Template Context": context_header})
+
             for trajectory, score in zip(eval_batch.trajectories, eval_batch.scores):
                 baseline_solution = ATLASExtractionUtils.extract_solution(trajectory["student_baseline"])
                 teaching_solution = ATLASExtractionUtils.extract_solution(trajectory["student_with_teaching"])
-                
+
                 item = {
                     "Inputs": {
                         "question": trajectory["question"],
@@ -376,16 +422,15 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
                         "teacher_response": trajectory["teacher_response"],
                         "student_with_teaching_solution": teaching_solution,
                     },
-                    "Comparison": {
-                        "baseline_solution": baseline_solution,
-                        "baseline_correct": ATLASExtractionUtils.check_correctness(baseline_solution, trajectory["ground_truth"]),
+                    "Result": {
                         "teaching_correct": ATLASExtractionUtils.check_correctness(teaching_solution, trajectory["ground_truth"]),
+                        "expected_answer": trajectory["ground_truth"],
+                        "score": score,
                     },
-                    "Feedback": f"Expected answer: {trajectory['ground_truth']}. Score: {score}",
                 }
-                
+
                 items.append(item)
-            
+
             reflective_data[component] = items
         
         return reflective_data
