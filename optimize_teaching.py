@@ -2,7 +2,7 @@ import argparse
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Callable
+from typing import Any, Dict, List, Optional, Union, Callable
 
 import gepa
 from trainers.prompt_adapter import ATLASGEPAAdapter, ATLASDataInst
@@ -34,13 +34,6 @@ def load_dataset_from_jsonl(path: str) -> List[ATLASDataInst]:
     return dataset
 
 
-def load_api_model(model_name: str) -> Union[str, Callable]:
-    if model_name.startswith("gpt-") or model_name.startswith("claude-"):
-        return model_name
-    elif "/" in model_name:
-        return model_name
-    else:
-        return model_name
 
 
 def run_gepa_optimization(
@@ -53,9 +46,9 @@ def run_gepa_optimization(
     trace_storage_path: str,
     seed_prompts: Dict[str, str],
     all_prompts: Dict[str, str],
-    gepa_config: Dict[str, any],
-    generation_config: Dict[str, any],
-    wandb_config: Optional[Dict[str, any]] = None,
+    gepa_config: Dict[str, Any],
+    generation_config: Dict[str, Any],
+    wandb_config: Optional[Dict[str, Any]] = None,
     use_vllm_client: bool = False,
     vllm_host: Optional[str] = None,
     vllm_port: Optional[int] = None,
@@ -73,13 +66,48 @@ def run_gepa_optimization(
         vllm_host=vllm_host,
         vllm_port=vllm_port,
     )
-    
+
+    import litellm
+    def reflection_lm_func(prompt: str) -> str:
+        try:
+            print(f"[DEBUG] Calling reflection LM: {reflection_lm}")
+            print(f"[DEBUG] Prompt length: {len(prompt)} chars")
+
+            response = litellm.completion(
+                model=reflection_lm,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=300,
+                max_tokens=32768,
+                temperature=generation_config.get('temperature', 0.7)
+            )
+            if response and response.choices and len(response.choices) > 0 and response.choices[0].message:
+                content = response.choices[0].message.content
+                if content is None:
+                    print(f"[ERROR] Reflection LM returned None content")
+                    print(f"[DEBUG] Response object: {response}")
+                    raise ValueError("Reflection LM returned None content")
+
+                print(f"[DEBUG] Reflection LM response length: {len(content)} chars")
+                if "```" in content:
+                    print(f"[DEBUG] Response contains ``` blocks")
+                else:
+                    print(f"[WARNING] Response missing ``` blocks - GEPA may fail to extract")
+
+                return content
+            else:
+                raise ValueError("Invalid response structure from reflection LM")
+
+        except Exception as e:
+            print(f"[ERROR] Reflection LM failed: {e}")
+            print(f"[ERROR] Model: {reflection_lm}")
+            raise
+
     result = gepa.optimize(
         seed_candidate=seed_prompts,
         trainset=trainset,
         valset=valset if valset else trainset,
         adapter=adapter,
-        reflection_lm=reflection_lm,
+        reflection_lm=reflection_lm_func,
         max_metric_calls=max_metric_calls,
         **gepa_config
     )
@@ -191,8 +219,25 @@ def main():
     
     print("Loading configuration...")
     import yaml
+    from pathlib import Path
+
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
+
+    if 'defaults' in config:
+        base_configs = config.get('defaults', [])
+        base_config = {}
+        config_dir = Path(args.config).parent
+
+        for base_name in base_configs:
+            base_path = config_dir / f"{base_name}.yaml"
+            if base_path.exists():
+                with open(base_path, 'r') as f:
+                    base = yaml.safe_load(f)
+                    base_config.update(base)
+
+        base_config.update(config)
+        config = base_config
     
     seed_prompts = config.get('seed_prompts', {})
     if not seed_prompts:
@@ -213,14 +258,21 @@ def main():
     else:
         trainset = load_dataset_from_jsonl(args.trainset)
         valset = load_dataset_from_jsonl(args.valset) if args.valset else None
-    
+
+    max_examples = config.get('max_examples')
+    if max_examples:
+        trainset = trainset[:max_examples]
+        if valset:
+            valset = valset[:max_examples]
+        print(f"Limited dataset to {max_examples} examples")
+
     print(f"Loaded {len(trainset)} training examples")
     
     if valset:
         print(f"Loaded {len(valset)} validation examples")
     
-    teacher_model = load_api_model(args.teacher_model)
-    student_model = load_api_model(args.student_model)
+    teacher_model = args.teacher_model
+    student_model = args.student_model
     
     print(f"\nTeacher model: {args.teacher_model}")
     print(f"Student model: {args.student_model}")

@@ -5,7 +5,7 @@ if [ -f .env ]; then
     echo "Loaded environment variables from .env"
 fi
 
-CONFIG_FILE="${1:-configs/optimize/api_models.yaml}"
+CONFIG_FILE="${1:-configs/optimize/default.yaml}"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Error: Config file not found: $CONFIG_FILE"

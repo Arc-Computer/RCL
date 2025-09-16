@@ -1,12 +1,13 @@
 trainset: arc-atlas-rl
 valset: null
+max_examples: 100
 
 student_model: Qwen/Qwen3-4B
 teacher_model: Arc-Intelligence/ATLAS-8B-Thinking
 
 reflection_lm: gpt-5
 
-max_metric_calls: 27850
+max_metric_calls: 3500
 
 trace_storage: traces/optimize_traces.jsonl
 output: optimized_prompts.json
@@ -15,7 +16,7 @@ use_vllm_client: false
 vllm_host: localhost
 vllm_port: 8765
 
-max_litellm_workers: 128
+max_litellm_workers: 100
 
 generation_config:
   max_tokens: 2048
@@ -35,7 +36,7 @@ fixed_prompts:
 gepa_config:
   candidate_selection_strategy: pareto
   skip_perfect_score: false
-  reflection_minibatch_size: 50
+  reflection_minibatch_size: 20
   perfect_score: 1.0
   module_selector: round_robin
   display_progress_bar: true
