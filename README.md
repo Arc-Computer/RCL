@@ -1,7 +1,7 @@
 # ATLAS: A Hybrid RL Architecture for Compounding Intelligence
 
 <p align="center">
-  <b>Hybrid offline RL + online optimization for adaptive teacher agents—enterprise-ready, fast to deploy, and developer-friendly.</b>
+  <b>Hybrid offline RL + online optimization for adaptive teacher agents. Enterprise-ready, fast to deploy, and developer-friendly.</b>
 </p>
 
 <div align="center">
