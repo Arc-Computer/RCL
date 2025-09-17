@@ -52,20 +52,32 @@ def run_gepa_optimization(
     use_vllm_client: bool = False,
     vllm_host: Optional[str] = None,
     vllm_port: Optional[int] = None,
+    compatibility_mode: bool = False,
+    user_agent: Optional[Callable] = None,
 ) -> Dict:
-    
-    adapter = ATLASGEPAAdapter(
-        teacher_model=teacher_model,
-        student_model=student_model,
-        reward_function=None,
-        trace_storage_path=trace_storage_path,
-        all_prompts=all_prompts,
-        generation_config=generation_config,
-        max_litellm_workers=generation_config.get('max_litellm_workers', 10),
-        use_vllm_client=use_vllm_client,
-        vllm_host=vllm_host,
-        vllm_port=vllm_port,
-    )
+
+    if compatibility_mode and user_agent:
+        from trainers.compatibility_adapter import CompatibilityAdapter
+        adapter = CompatibilityAdapter(
+            teacher_model=teacher_model,
+            user_agent=user_agent,
+            trace_storage_path=trace_storage_path,
+            generation_config=generation_config,
+            max_litellm_workers=generation_config.get('max_litellm_workers', 10),
+        )
+    else:
+        adapter = ATLASGEPAAdapter(
+            teacher_model=teacher_model,
+            student_model=student_model,
+            reward_function=None,
+            trace_storage_path=trace_storage_path,
+            all_prompts=all_prompts,
+            generation_config=generation_config,
+            max_litellm_workers=generation_config.get('max_litellm_workers', 10),
+            use_vllm_client=use_vllm_client,
+            vllm_host=vllm_host,
+            vllm_port=vllm_port,
+        )
 
     import litellm
     def reflection_lm_func(prompt: str) -> str:
@@ -239,8 +251,10 @@ def main():
         base_config.update(config)
         config = base_config
     
+    compatibility_mode = config.get('compatibility_mode', False)
+
     seed_prompts = config.get('seed_prompts', {})
-    if not seed_prompts:
+    if not seed_prompts and not compatibility_mode:
         parser.error(f"No seed_prompts found in config file: {args.config}")
     
     fixed_prompts = config.get('fixed_prompts', {})
@@ -271,20 +285,62 @@ def main():
     if valset:
         print(f"Loaded {len(valset)} validation examples")
     
-    teacher_model = args.teacher_model
-    student_model = args.student_model
-    
+    if config.get('teacher_wrapper'):
+        from wrappers import load_wrapper
+        teacher_model = load_wrapper(
+            config['teacher_wrapper']['type'],
+            config['teacher_wrapper']['config']
+        )
+    else:
+        teacher_model = args.teacher_model
+
+    if config.get('student_wrapper'):
+        from wrappers import load_wrapper
+        student_model = load_wrapper(
+            config['student_wrapper']['type'],
+            config['student_wrapper']['config']
+        )
+    else:
+        student_model = args.student_model
+
+    user_agent = None
+
+    if compatibility_mode:
+        print("\n=== COMPATIBILITY MODE ===")
+        print("Testing existing agent with ATLAS teaching")
+
+        if config.get('user_agent'):
+            from wrappers import load_wrapper
+            user_agent = load_wrapper(
+                config['user_agent']['type'],
+                config['user_agent']['config']
+            )
+            student_model = None
+        else:
+            raise ValueError("Compatibility mode requires user_agent configuration")
+
+        if not seed_prompts:
+            seed_prompts = {
+                "teacher_adaptive_template":
+                    "You are an expert teacher. The student gave this response: {baseline_response}\n\n"
+                    "To the question: {question}\n\n"
+                    "Provide focused teaching to help them improve. Wrap teaching in <teaching> tags."
+            }
+
     print(f"\nTeacher model: {args.teacher_model}")
-    print(f"Student model: {args.student_model}")
+    if not compatibility_mode:
+        print(f"Student model: {args.student_model}")
+    else:
+        print(f"User agent: Configured via {config['user_agent']['type']}")
     print(f"Reflection LM: {args.reflection_lm}")
     print(f"Max metric calls: {args.max_metric_calls}")
     print(f"Trace storage: {args.trace_storage}")
-    
+
     if args.use_vllm_client:
         print(f"Using vLLM client at {args.vllm_host}:{args.vllm_port}")
-    
+
     print("\nStarting GEPA optimization...")
-    
+
     result = run_gepa_optimization(
         teacher_model=teacher_model,
         student_model=student_model,
@@ -301,6 +357,8 @@ def main():
         use_vllm_client=args.use_vllm_client,
         vllm_host=args.vllm_host,
         vllm_port=args.vllm_port,
+        compatibility_mode=compatibility_mode,
+        user_agent=user_agent,
     )
     
     initial_score = result.val_aggregate_scores[0] if result.val_aggregate_scores else None
