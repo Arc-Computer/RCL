@@ -22,6 +22,37 @@ ATLAS delivers consistent **15.7% accuracy improvements** and **31% completion g
 
 📄 **[Read the ATLAS Technical Report](docs/ATLAS-Technical-Report.pdf)** for comprehensive methodology, ablation studies, and detailed performance analysis.
 
+## Online Teaching Optimization (GEPA)
+
+ATLAS pairs its RL-trained teacher with GEPA's reflective prompt evolution to deliver fast, low-cost online learning. The pipeline reached production-ready gains in hours without any retraining.
+
+![ATLAS Online Learning Improvement](public/atlas-online-learning.png)
+
+- **+165% student performance** in seven GEPA iterations
+- **~2 hours** total optimization time
+- **~$10** in inference costs using gemini/gemini-flash-2.5 reflections
+- **1.97 efficiency score**, producing solutions that are 97% more concise than the baseline
+
+**Hybrid Learning Architecture**
+- **Offline ATLAS foundation**: Reinforcement learning instills robust teaching behaviors that generalize. One skill learned offline has transferred to unrelated enterprise tasks with ~6× performance gains.
+- **Online reflective optimization**: GEPA applies reflective mutation in production, automating reward tuning against live data. Pretrained ATLAS teachers or any open/closed-source model can plug in for rapid, low-cost adaptation.
+
+Start with the default online optimization recipe or wrap an existing agent, then deep dive into the [online learning guide](docs/guides/online-learning.md) for complete configuration options and troubleshooting tips.
+
+**Optimize ATLAS prompts (student + teacher models):**
+
+```bash
+python optimize_teaching.py --config configs/optimize/default.yaml
+```
+
+**Wrap an existing agent in compatibility mode:**
+
+```bash
+scripts/openai_agent_atlas.sh configs/wrappers/openai_existing_agent.yaml
+```
+
+Set provider credentials (for example `OPENAI_API_KEY` or `GEMINI_API_KEY`) before running, and pick a reflection LM such as `gemini/gemini-flash-2.5` or any LiteLLM-supported model.
+
 ## Student Performance Results
 
 Our evaluation demonstrates that ATLAS-trained teachers consistently improve student model performance across multiple metrics with verified reliability.
