@@ -1,25 +1,35 @@
 
-# Reward Design (Asymmetric)
+# Reward Design
 
-The reward encourages teaching that improves student performance and discourages interventions that degrade already-strong students.
+The reward system encourages teaching that improves student performance while preventing harmful interventions.
 
-- Degradation penalty: 2× multiplier (configurable)
-- Efficiency bonus: short, targeted teaching receives a positive length-aware bonus
+## Implementation
 
-Configuration (excerpt from `configs/trainer/reward/adaptive_teaching.yaml`):
+The reward function (`trainers/teacher_rewards.py::AdaptiveTeachingReward`) uses a simple but effective approach:
+
+- **Performance degradation**: `reward = 0.0` (no reward for harmful teaching)
+- **Performance unchanged + correct**: `reward = 0.5 × (1 + efficiency_bonus)`
+- **Performance improvement**: `reward = delta × (1 + efficiency_bonus)`
+
+Where `efficiency_bonus = 100 / (100 + teaching_length)` encourages concise guidance.
+
+## Configuration
+
+From `configs/trainer/reward/adaptive_teaching.yaml`:
 
 ```yaml
-degradation_penalty_multiplier: 2.0
-efficiency_weight: 1.0
-max_probe_tokens: 50
+degradation_penalty_multiplier: 2.0  # Note: Not used in current implementation
+efficiency_weight: 1.0                # Scales the efficiency bonus
+max_probe_tokens: 500                 # Token limit for diagnostic probing
 ```
 
-Reference implementation: `trainers/teacher_rewards.py::AdaptiveTeachingReward`.
+## Design Rationale
 
-Notes:
+- **Zero reward for degradation**: Prevents harmful interventions without complex negative penalties
+- **Efficiency weighting**: Rewards concise, targeted teaching over verbose explanations
+- **Performance delta focus**: Direct correlation between student improvement and reward signal
 
-- The baseline is the student's solution without teacher guidance.
-- Reward combines delta vs. baseline and a token-length-based efficiency term.
+The baseline is the student's solution without teacher guidance.
 
 ## See Also
 

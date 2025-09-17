@@ -1,7 +1,7 @@
 
 # RL Training (GRPO)
 
-GRPO optimizes the teacher with an asymmetric reward that discourages degradation and rewards concise, effective teaching.
+GRPO optimizes the teacher with a reward system that prevents degradation (zero reward) and rewards concise, effective teaching.
 
 ## Command
 
@@ -19,7 +19,7 @@ scripts/launch_with_server.sh 1 3 configs/run/teacher_rcl.yaml \
 - Throughput: `num_generations`, `generation_aggregation_steps`
 - KL/Ref sync: `beta`, `sync_ref_model`, `ref_model_mixup_alpha`, `ref_model_sync_steps`
 - Memory: `offload_untrained_models`, `ds3_gather_for_generation`
-- Reward: `degradation_penalty_multiplier`, `efficiency_weight` (via reward config)
+- Reward: `efficiency_weight` (via reward config)
 
 ## Probing and Templates
 
@@ -33,7 +33,7 @@ See `trainers/teacher_trainers.py` and `configs/trainer/reward/adaptive_teaching
 ## See Also
 
 - [Adaptive Teaching](../concepts/adaptive-teaching.md) - Core diagnostic and teaching protocol
-- [Reward Design](../concepts/reward-design.md) - Asymmetric reward structure
+- [Reward Design](../concepts/reward-design.md) - Reward structure and efficiency bonuses
 - [Distributed Training](distributed-training.md) - Multi-GPU setup and memory optimization
 - [Methodology & Performance](../../README.md#methodology--performance) - Complete results and reproducibility
 

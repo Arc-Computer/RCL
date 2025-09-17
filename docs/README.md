@@ -6,55 +6,64 @@ ATLAS (Adaptive Training and Learning Alignment System) is a framework for train
 
 ATLAS implements adaptive learning through two approaches:
 
-### 🎯 Inference-Only (Use Pre-trained Models)
+### Inference-Only (Use Pre-trained Models)
 Use our pre-trained ATLAS teachers to enhance any existing agent:
 - **No training required** - Just load and use
 - **Model-agnostic** - Works with any LLM (GPT, Claude, Llama, etc.)
-- **15-30% improvement** - Immediate accuracy gains
+- **15.7% improvement** - Immediate accuracy gains
 - **Drop-in replacement** - Minimal code changes
 
-### 🏭 Training Pipeline (Build Custom Teachers)
+### Training Pipeline (Build Custom Teachers)
 Train your own ATLAS teacher models:
 1. **Supervised Fine-tuning (SFT)**: Initial warmup phase
 2. **Reinforcement Learning (RL/GRPO)**: Adaptive learning optimization with vLLM server integration
 
 The system uses a diagnostic probing protocol where teachers first assess student capability, then provide calibrated guidance to improve performance without harmful interventions.
 
-## 🚀 Quick Integration: Wrap Your Agent with ATLAS
+## Quick Integration
 
-**Transform your existing agent into an ATLAS-enhanced system in minutes:**
+Transform your existing agent into an ATLAS-enhanced system with minimal code changes:
 
 ### Option 1: Direct Integration (No Training Required)
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from examples.utils.atlas_inference import ATLASInference
 
-# Your existing agent
-your_agent = AutoModelForCausalLM.from_pretrained("your-model-name")
-your_tokenizer = AutoTokenizer.from_pretrained("your-model-name")
+# Load your existing agent
+student_model = AutoModelForCausalLM.from_pretrained("your-model-name")
+student_tokenizer = AutoTokenizer.from_pretrained("your-model-name")
 
-# Add ATLAS teacher
-teacher = AutoModelForCausalLM.from_pretrained("Arc-Intelligence/ATLAS-8B-Thinking")
-teacher_tokenizer = AutoTokenizer.from_pretrained("Arc-Intelligence/ATLAS-8B-Thinking")
+# Load ATLAS teacher (requires trust_remote_code for custom architecture)
+teacher_model = AutoModelForCausalLM.from_pretrained(
+    "Arc-Intelligence/ATLAS-8B-Thinking",
+    trust_remote_code=True
+)
+teacher_tokenizer = AutoTokenizer.from_pretrained(
+    "Arc-Intelligence/ATLAS-8B-Thinking",
+    trust_remote_code=True
+)
 
-# Use ATLAS protocol
-def enhanced_generate(prompt):
-    # 1. Diagnostic probe (teacher assesses difficulty)
-    probe_input = f"Assess difficulty for: {prompt[:100]}..."
-    assessment = teacher.generate(probe_input, max_tokens=50)
-    
-    # 2. Adaptive guidance (teacher provides help)
-    guidance = teacher.generate(f"Provide guidance: {prompt}", max_tokens=200)
-    
-    # 3. Enhanced generation (agent uses guidance)
-    enhanced_prompt = f"{prompt}\nGuidance: {guidance}"
-    return your_agent.generate(enhanced_prompt)
+# Initialize ATLAS protocol
+atlas = ATLASInference(
+    student_model=student_model,
+    student_tokenizer=student_tokenizer,
+    teacher_model=teacher_model,
+    teacher_tokenizer=teacher_tokenizer,
+    probe_token_limit=500 
+)
+
+# Run complete two-pass protocol
+result = atlas.run_full_protocol("Your problem here")
+
+# Access enhanced response with teacher guidance
+guided_response = result["guided_response"]  # Student with ATLAS teacher guidance
 ```
 
-### Option 2: Production API Integration
+### Option 2: Production API Integration (Example)
 ```python
 import requests
 
-# Deploy ATLAS teacher as API endpoint
+# Deploy ATLAS teacher as API endpoint (example deployment pattern)
 ATLAS_API = "https://your-atlas-server.com/v1/enhance"
 
 def your_agent_with_atlas(user_input):
@@ -68,7 +77,7 @@ def your_agent_with_atlas(user_input):
 
 ### Option 3: Train Your Own ATLAS Teacher
 
-**Prerequisites**: Python 3.11, PyTorch 2.6.0, vLLM 0.8.3, and authenticated Hugging Face access.
+**Prerequisites**: Python 3.11 or 3.12, and authenticated Hugging Face access. See requirements files for package versions.
 
 **SFT Training**:
 ```bash
@@ -79,8 +88,6 @@ scripts/launch.sh 1 configs/run/teacher_sft.yaml report_to=null save_final_model
 ```bash
 scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null max_steps=4 eval_steps=1
 ```
-
-## Quick Start
 
 ## Architecture
 
@@ -99,7 +106,7 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 **Reward Design**:
 - Zero reward for performance degradation
 - Positive rewards for improvements with efficiency bonuses
-- Configurable via `degradation_penalty_multiplier` and `efficiency_weight`
+- Configurable via `efficiency_weight`
 
 **vLLM Integration**:
 - FastAPI server endpoints for health checks and generation
@@ -136,7 +143,7 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 
 ### Concepts
 - [Adaptive Learning](concepts/adaptive-learning.md) - Two-pass diagnostic protocol and learning strategy
-- [Reward Design](concepts/reward-design.md) - Learning effectiveness metrics and asymmetric rewards
+- [Reward Design](concepts/reward-design.md) - Learning effectiveness metrics and reward structure
 
 ### Deployment
 - [Inference](deployment/inference.md) - Production deployment patterns
@@ -167,10 +174,8 @@ scripts/launch.sh 8 configs/run/teacher_sft.yaml learning_rate=5e-6 output_dir=c
 
 ## Performance Metrics
 
-Key evaluation metrics for learning effectiveness:
-- **Learning Rate (LR)**: Performance change per interaction
-- **Non-Degradation Rate (NDR)**: Percentage of non-harmful interactions
-- **Learning Efficiency Score (LES)**: Performance gain per guidance token
+Key evaluation metric:
+- **Non-Degradation Rate (NDR)**: Percentage of non-harmful interactions (97% achieved)
 
 ## Support
 
