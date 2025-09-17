@@ -172,7 +172,7 @@ class CompatibilityAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRoll
 
             items.append({
                 "OPTIMIZATION_TARGET": "teacher_adaptive_template",
-                "GOAL": "Generate better teaching based on user agent's baseline response"
+                "GOAL": "Generate better teaching based on user agent's baseline response teacher needs to improve student's perfromance according to the task given to the student teacher's focus should be on how teach this student so that if can comlete the request or question without overthinking"
             })
 
             for trajectory, score in zip(eval_batch.trajectories, eval_batch.scores):

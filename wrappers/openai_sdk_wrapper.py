@@ -36,6 +36,8 @@ class OpenAISDKWrapper:
                         "custom_tool",
                         tool_config["module_path"]
                     )
+                    if spec is None or spec.loader is None:
+                        raise ImportError(f"Cannot load module from {tool_config['module_path']}")
                     module = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module)
                     func = getattr(module, tool_config["function_name"])

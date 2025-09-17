@@ -29,6 +29,8 @@ class CustomWrapper:
         function_name = self.config["function_name"]
 
         spec = importlib.util.spec_from_file_location("custom_agent", module_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load module from {module_path}")
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         self.agent_function = getattr(module, function_name)
@@ -64,7 +66,12 @@ class CustomWrapper:
                     timeout=self.config.get("timeout", 300)
                 )
                 response.raise_for_status()
-                result = response.json()
+
+                try:
+                    result = response.json()
+                except ValueError:
+                    return response.text.strip()
+
                 return self._extract_field(result, self.response_field)
             except requests.exceptions.RequestException as e:
                 return f"Error calling API: {str(e)}"
