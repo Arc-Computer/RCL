@@ -77,13 +77,13 @@ Leverage our pre-trained models to get value now. This path uses the online opti
 1.  **Optimize ATLAS Prompts:**
     Use this command to run the online optimization pipeline with the default Teacher and Student models.
     ```bash
-    python optimize_teaching.py --config configs/optimize/default.yaml
+    ./scripts/openai_agent_atlas.sh configs/optimize/default.yaml
     ```
 
 2.  **Wrap Your Own Agent:**
     This script wraps an existing agent (e.g., an OpenAI Assistant or custom API) in the ATLAS teaching framework for optimization.
     ```bash
-    scripts/openai_agent_atlas.sh configs/wrappers/openai_existing_agent.yaml
+    ./scripts/openai_agent_atlas.sh configs/wrappers/openai_existing_agent.yaml
     ```
 *Set provider credentials (e.g., `OPENAI_API_KEY`, `GEMINI_API_KEY`), ensure Python 3.11 is active, and install deps via `requirements-py311.txt` (or LiteLLM configs if swapping models). For full configuration details, see the [Online Learning Guide](docs/guides/online-learning.md).*
 

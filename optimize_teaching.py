@@ -88,31 +88,30 @@ def run_gepa_optimization(
             response = litellm.completion(
                 model=reflection_lm,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=600,
-                request_timeout=600,
-                max_tokens=32768,
+                timeout=generation_config.get('timeout', 600),
+                request_timeout=generation_config.get('request_timeout', 600),
+                max_tokens=generation_config.get('reflection_max_tokens', 32768),
                 temperature=generation_config.get('temperature', 0.7)
             )
             if response and response.choices and len(response.choices) > 0 and response.choices[0].message:
                 content = response.choices[0].message.content
                 if content is None:
-                    print(f"[ERROR] Reflection LM returned None content")
+                    print("[ERROR] Reflection LM returned None content")
                     print(f"[DEBUG] Response object: {response}")
                     raise ValueError("Reflection LM returned None content")
 
                 print(f"[DEBUG] Reflection LM response length: {len(content)} chars")
                 if "```" in content:
-                    print(f"[DEBUG] Response contains ``` blocks")
+                    print("[DEBUG] Response contains ``` blocks")
                 else:
-                    print(f"[WARNING] Response missing ``` blocks - GEPA may fail to extract")
+                    print("[WARNING] Response missing ``` blocks - GEPA may fail to extract")
 
                 return content
             else:
                 raise ValueError("Invalid response structure from reflection LM")
 
         except Exception as e:
-            print(f"[ERROR] Reflection LM failed: {e}")
-            print(f"[ERROR] Model: {reflection_lm}")
+            print(f"[ERROR] Reflection LM failed: {e} (Model: {reflection_lm})")
             raise
 
     result = gepa.optimize(
@@ -180,8 +179,8 @@ def main():
     parser.add_argument(
         "--reflection-lm",
         type=str,
-        default="gpt-5",
-        help="Language model for GEPA reflection",
+        default=None,
+        help="Language model for GEPA reflection (defaults to teacher model)",
     )
     parser.add_argument(
         "--max-metric-calls",
@@ -253,6 +252,8 @@ def main():
         config = base_config
     
     compatibility_mode = config.get('compatibility_mode', False)
+
+    reflection_lm = args.reflection_lm or config.get('reflection_lm') or config.get('teacher_model') or args.teacher_model
 
     seed_prompts = config.get('seed_prompts', {})
     if not seed_prompts and not compatibility_mode:
@@ -333,7 +334,7 @@ def main():
         print(f"Student model: {args.student_model}")
     else:
         print(f"User agent: Configured via {config['user_agent']['type']}")
-    print(f"Reflection LM: {args.reflection_lm}")
+    print(f"Reflection LM: {reflection_lm}")
     print(f"Max metric calls: {args.max_metric_calls}")
     print(f"Trace storage: {args.trace_storage}")
 
@@ -348,7 +349,7 @@ def main():
         trainset=trainset,
         valset=valset,
         max_metric_calls=args.max_metric_calls,
-        reflection_lm=args.reflection_lm,
+        reflection_lm=reflection_lm,
         trace_storage_path=args.trace_storage,
         seed_prompts=seed_prompts,
         all_prompts=all_prompts,
