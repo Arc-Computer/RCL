@@ -1,47 +1,23 @@
 defaults:
   - ../optimize/default
 
-# Teacher Configuration
-# Option 1: Use standard model
-teacher_model: Arc-Intelligence/ATLAS-8B-Thinking
+teacher_wrapper:
+  type: openai_assistant
+  config:
+    name: "ATLAS Teacher"
+    instructions: |
+      You are an expert teacher. Analyze approaches and provide teaching.
+      Wrap teaching in <teaching> tags.
+    model: ${TEACHER_MODEL}
+    api_key: ${OPENAI_API_KEY}
 
-# Option 2: Use wrapper (uncomment to enable)
-# teacher_wrapper:
-#   type: openai_sdk  # or openai_assistant
-#   config:
-#     name: "SDK Teacher"
-#     instructions: |
-#       You are an expert teacher. Analyze approaches and provide teaching.
-#       Wrap teaching in <teaching> tags.
-#     model: gpt-4o
-#     # For assistant type, add:
-#     # api_key: ${OPENAI_API_KEY}
-#     # assistant_id: ${OPENAI_ASSISTANT_ID}  # optional
+student_wrapper:
+  type: openai_assistant
+  config:
+    name: "ATLAS Student"
+    instructions: "Work through problems step by step."
+    model: ${STUDENT_MODEL}
+    api_key: ${OPENAI_API_KEY}
 
-# Student Configuration
-# Option 1: Use standard model
-student_model: Qwen/Qwen3-4B
-
-# Option 2: Use wrapper (uncomment to enable)
-# student_wrapper:
-#   type: openai_sdk  # or openai_assistant
-#   config:
-#     name: "SDK Student"
-#     instructions: "Work through problems step by step."
-#     model: gpt-4o-mini
-#     # For assistant type with JSON output:
-#     # api_key: ${OPENAI_API_KEY}
-#     # response_format:
-#     #   type: json_schema
-#     #   json_schema:
-#     #     name: solution
-#     #     schema:
-#     #       type: object
-#     #       properties:
-#     #         solution: {type: string}
-#     # output_extraction:
-#     #   type: json_field
-#     #   field_path: solution
-
-max_examples: 10
-max_metric_calls: 100
+max_examples: 5
+max_metric_calls: 50

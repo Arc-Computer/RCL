@@ -1,4 +1,5 @@
 import json
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List, Union
@@ -8,15 +9,25 @@ from openai import OpenAI
 
 class OpenAIAssistantWrapper:
     def __init__(self, config: Dict[str, Any]):
-        self.config = config
-        self.client = OpenAI(api_key=config["api_key"])
-        self.assistant_id = config.get("assistant_id")
-        self.timeout = config.get("timeout", 300)
-        self.max_workers = config.get("max_workers", 10)
+        self.config = self._expand_env_vars(config)
+        self.client = OpenAI(api_key=self.config["api_key"])
+        self.assistant_id = self.config.get("assistant_id")
+        self.timeout = self.config.get("timeout", 300)
+        self.max_workers = self.config.get("max_workers", 10)
         self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
 
         if not self.assistant_id:
             self.assistant_id = self._create_assistant()
+
+    def _expand_env_vars(self, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+            env_var = value[2:-1]
+            return os.environ.get(env_var, value)
+        elif isinstance(value, dict):
+            return {k: self._expand_env_vars(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [self._expand_env_vars(item) for item in value]
+        return value
 
     def _create_assistant(self) -> str:
         response_format = self.config.get("response_format", {"type": "text"})

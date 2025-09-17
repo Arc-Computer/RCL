@@ -274,17 +274,19 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
         print(f"[Adapter] Got {len(teacher_completions)} teacher responses")
         
         teaching_contents = [
-            ATLASExtractionUtils.extract_teaching_content(tc) 
+            ATLASExtractionUtils.extract_teaching_content(tc)
             for tc in teacher_completions
         ]
-        
+
         student_with_teaching_prompts = [
             self._safe_format(student_with_teaching_template, question=q, teaching=t)
             for q, t in zip(questions, teaching_contents)
         ]
+        print(f"[Adapter] Getting student responses with teaching...")
         student_with_teaching_completions = self.student_model(student_with_teaching_prompts)
         if not isinstance(student_with_teaching_completions, list):
             student_with_teaching_completions = [student_with_teaching_completions]
+        print(f"[Adapter] Got {len(student_with_teaching_completions)} student responses with teaching")
         
         baseline_solutions = ATLASExtractionUtils.extract_solutions(baseline_completions)
         student_solutions = ATLASExtractionUtils.extract_solutions(student_with_teaching_completions)
@@ -399,13 +401,39 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
 
             template_info = template_roles.get(component, {})
             if template_info:
+                metrics_by_template = {
+                    "teacher_adaptive_template": {
+                        "primary": "Maximize correct answers after teaching (teaching_correct rate)",
+                        "secondary": "Ensure teaching is clear, actionable, and directly addresses student's mistakes",
+                        "avoid": "Generic advice, overly complex explanations, or teaching that doesn't connect to student's approach"
+                    },
+                    "student_diagnostic_template": {
+                        "primary": "Generate clear diagnostic approaches that reveal student's thinking process",
+                        "secondary": "Ensure approach is detailed enough for teacher to identify gaps but concise (under 500 tokens)",
+                        "avoid": "Jumping to solution directly, being too vague, or providing complete solutions instead of approach"
+                    },
+                    "student_with_teaching_template": {
+                        "primary": "Maximize correct final answers when applying teaching",
+                        "secondary": "Show clear application of teaching concepts, provide answer in proper format (within tags)",
+                        "avoid": "Ignoring the teaching, making same mistakes, or failing to provide clear final answer"
+                    }
+                }
+
+                strategy_by_template = {
+                    "teacher_adaptive_template": "Analyze patterns where teaching succeeded vs failed. Identify what made successful teaching effective. Modify prompt to encourage those successful patterns.",
+                    "student_diagnostic_template": "Analyze which diagnostic approaches led to most effective teaching. Identify patterns in good vs poor diagnostics. Modify prompt to elicit clearer problem-solving approaches.",
+                    "student_with_teaching_template": "Analyze when students successfully applied teaching vs when they didn't. Identify what prompt elements help students integrate teaching. Modify to improve teaching application."
+                }
+
                 context_header = {
                     "TEMPLATE_BEING_OPTIMIZED": component,
                     "ROLE": template_info["role"],
                     "PURPOSE": template_info["purpose"],
                     "EXPECTED_INPUT": template_info["input"],
                     "EXPECTED_OUTPUT": template_info["output"],
-                    "OPTIMIZATION_GOAL": f"Improve this {template_info['role']} prompt to better achieve: {template_info['purpose']}"
+                    "OPTIMIZATION_GOAL": f"Improve this {template_info['role']} prompt to better achieve: {template_info['purpose']}",
+                    "KEY_METRICS_TO_OPTIMIZE": metrics_by_template.get(component, {}),
+                    "OPTIMIZATION_STRATEGY": strategy_by_template.get(component, "")
                 }
                 items.append({"Template Context": context_header})
 
@@ -413,13 +441,15 @@ class ATLASGEPAAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRolloutO
                 baseline_solution = ATLASExtractionUtils.extract_solution(trajectory["student_baseline"])
                 teaching_solution = ATLASExtractionUtils.extract_solution(trajectory["student_with_teaching"])
 
+                teaching_content = ATLASExtractionUtils.extract_teaching_content(trajectory["teacher_response"])
+
                 item = {
                     "Inputs": {
                         "question": trajectory["question"],
                         "student_approach": trajectory["student_approach"],
                     },
                     "Generated Outputs": {
-                        "teacher_response": trajectory["teacher_response"],
+                        "teaching_content": teaching_content,
                         "student_with_teaching_solution": teaching_solution,
                     },
                     "Result": {

@@ -88,7 +88,8 @@ def run_gepa_optimization(
             response = litellm.completion(
                 model=reflection_lm,
                 messages=[{"role": "user", "content": prompt}],
-                timeout=300,
+                timeout=600,
+                request_timeout=600,
                 max_tokens=32768,
                 temperature=generation_config.get('temperature', 0.7)
             )

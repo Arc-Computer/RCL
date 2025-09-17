@@ -41,6 +41,9 @@ VALSET=$(extract_yaml_value "valset" "$CONFIG_FILE")
 TEACHER_MODEL=${TEACHER_MODEL:-$(extract_yaml_value "teacher_model" "$CONFIG_FILE")}
 STUDENT_MODEL=${STUDENT_MODEL:-$(extract_yaml_value "student_model" "$CONFIG_FILE")}
 REFLECTION_LM=${REFLECTION_LM:-$(extract_yaml_value "reflection_lm" "$CONFIG_FILE")}
+
+export TEACHER_MODEL
+export STUDENT_MODEL
 MAX_CALLS=$(extract_yaml_value "max_metric_calls" "$CONFIG_FILE")
 TRACE_STORAGE=$(extract_yaml_value "trace_storage" "$CONFIG_FILE")
 OUTPUT=$(extract_yaml_value "output" "$CONFIG_FILE")

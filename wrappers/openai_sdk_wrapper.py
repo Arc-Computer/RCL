@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Any, Dict, List, Union
 
 try:
@@ -12,8 +13,18 @@ except ImportError:
 
 class OpenAISDKWrapper:
     def __init__(self, config: Dict[str, Any]):
-        self.config = config
+        self.config = self._expand_env_vars(config)
         self.agent = self._create_agent()
+
+    def _expand_env_vars(self, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+            env_var = value[2:-1]
+            return os.environ.get(env_var, value)
+        elif isinstance(value, dict):
+            return {k: self._expand_env_vars(v) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [self._expand_env_vars(item) for item in value]
+        return value
 
     def _create_agent(self) -> Agent:
         return Agent(
@@ -61,8 +72,9 @@ class OpenAISDKWrapper:
         else:
             single = False
 
-        responses = []
-        for prompt in prompts:
+        from concurrent.futures import ThreadPoolExecutor
+
+        def process_single(prompt):
             result = Runner.run_sync(self.agent, prompt)
             output = result.final_output
 
@@ -71,6 +83,9 @@ class OpenAISDKWrapper:
             elif not isinstance(output, str):
                 output = str(output)
 
-            responses.append(output)
+            return output
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            responses = list(executor.map(process_single, prompts))
 
         return responses[0] if single else responses

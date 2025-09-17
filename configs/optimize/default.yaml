@@ -1,13 +1,13 @@
 trainset: arc-atlas-rl
 valset: null
-max_examples: 100
+max_examples: 5
 
 student_model: Qwen/Qwen3-4B
 teacher_model: Arc-Intelligence/ATLAS-8B-Thinking
 
 reflection_lm: gpt-5
 
-max_metric_calls: 3500
+max_metric_calls: 50
 
 trace_storage: traces/optimize_traces.jsonl
 output: optimized_prompts.json
@@ -36,9 +36,9 @@ fixed_prompts:
 gepa_config:
   candidate_selection_strategy: pareto
   skip_perfect_score: false
-  reflection_minibatch_size: 20
+  reflection_minibatch_size: 5
   perfect_score: 1.0
-  module_selector: round_robin
+  module_selector: all
   display_progress_bar: true
 
 wandb:
