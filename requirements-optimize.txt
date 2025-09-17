@@ -1,0 +1,6 @@
+# Core dependencies for ATLAS teaching optimization
+gepa[full]
+
+# Optional: For vLLM server support (install if using vLLM)
+# vllm
+# requests

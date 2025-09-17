@@ -122,6 +122,7 @@ scripts/launch_with_server.sh 1 1 configs/run/teacher_rcl.yaml report_to=null ma
 - [First Experiment](getting-started/first-experiment.md) - Complete workflow example
 
 ### Guides  
+- [Online Learning](guides/online-learning.md) - GEPA prompt evolution and compatibility wrappers
 - [Model Selection](guides/model-selection.md) - Base model configuration
 - [Data Requirements](guides/data-requirements.md) - Dataset preparation
 - [Distributed Training](guides/distributed-training.md) - Multi-GPU setup

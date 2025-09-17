@@ -1,0 +1,82 @@
+# Test YOUR existing agent with ATLAS teaching
+
+# Your agent configuration
+user_agent:
+  type: custom
+  config:
+    # Choose ONE integration method:
+
+    # HTTP API
+    integration_type: http_api
+    endpoint: "http://localhost:8000/chat"
+    prompt_field: "message"
+    response_field: "response"
+    request_template:
+      message: ""  # Will be filled with prompt
+      # Add other fields your API expects
+    headers:
+      Authorization: "Bearer YOUR_KEY"
+    timeout: 300
+
+    # Python Function
+    # integration_type: python_function
+    # module_path: "/path/to/your/agent.py"
+    # function_name: "generate"
+
+    # CLI Command
+    # integration_type: cli_command
+    # command: "python agent.py '{prompt}'"
+
+# ATLAS teacher (optimized for teaching)
+teacher_model: Arc-Intelligence/ATLAS-8B-Thinking
+
+# Dataset to test on
+trainset: arc-atlas-rl
+max_examples: 10
+
+# Compatibility mode settings
+compatibility_mode: true
+
+# Teaching optimization
+max_metric_calls: 100
+reflection_lm: gpt-4
+trace_storage: traces/compatibility_traces.jsonl
+output: compatibility_results.json
+
+# vLLM settings (optional)
+use_vllm_client: false
+vllm_host: localhost
+vllm_port: 8765
+
+# Worker settings
+max_litellm_workers: 10
+
+generation_config:
+  max_tokens: 2048
+  temperature: 0.7
+  diagnostic_max_tokens: 500
+  timeout: 300
+  request_timeout: 300
+
+# Seed prompts for compatibility mode
+seed_prompts:
+  teacher_adaptive_template: "You are an expert teacher. The student gave this response: {baseline_response}\n\nTo the question: {question}\n\nProvide focused teaching to help them improve. Wrap teaching in <teaching> tags."
+
+# GEPA optimization settings
+gepa_config:
+  candidate_selection_strategy: pareto
+  skip_perfect_score: false
+  reflection_minibatch_size: 5
+  perfect_score: 1.0
+  module_selector: single  # Single template for compatibility mode
+  display_progress_bar: true
+
+# WandB logging (optional)
+wandb:
+  enabled: false
+  project: atlas-compatibility-testing
+  run_name: null
+  tags:
+    - compatibility
+    - existing-agent
+  notes: "Testing existing agent with ATLAS teaching"
