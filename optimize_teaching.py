@@ -21,16 +21,39 @@ def load_arc_atlas_dataset_from_hf() -> List[ATLASDataInst]:
     return result
 
 
-def load_dataset_from_jsonl(path: str) -> List[ATLASDataInst]:
+def load_gsm8k_zh_dataset() -> List[ATLASDataInst]:
+    dataset = load_dataset("meta-math/GSM8K_zh", split="train")
+    result = []
+    for example in dataset:
+        result.append({
+            "question": example["question"],
+            "ground_truth": example["answer_only"],
+            "additional_context": {},
+        })
+    return result
+
+
+def load_dataset_from_jsonl(path: str, column_config: Optional[Dict[str, str]] = None) -> List[ATLASDataInst]:
     dataset = []
     with open(path, 'r') as f:
         for line in f:
             data = json.loads(line)
-            dataset.append({
-                "question": data.get("question", data.get("prompt", "")),
-                "ground_truth": data.get("ground_truth", data.get("answer", "")),
-                "additional_context": data.get("additional_context", {}),
-            })
+            if column_config:
+                question_col = column_config.get('question', 'question')
+                answer_col = column_config.get('answer', 'ground_truth')
+                context_col = column_config.get('context')
+
+                dataset.append({
+                    "question": data.get(question_col, ""),
+                    "ground_truth": data.get(answer_col, ""),
+                    "additional_context": data.get(context_col, {}) if context_col else {},
+                })
+            else:
+                dataset.append({
+                    "question": data.get("question", data.get("prompt", "")),
+                    "ground_truth": data.get("ground_truth", data.get("answer", "")),
+                    "additional_context": data.get("additional_context", {}),
+                })
     return dataset
 
 
@@ -54,6 +77,9 @@ def run_gepa_optimization(
     vllm_port: Optional[int] = None,
     compatibility_mode: bool = False,
     user_agent: Optional[Callable] = None,
+    reflection_instructions: Optional[Dict[str, str]] = None,
+    evaluation_config: Optional[Dict[str, Any]] = None,
+    optimization_targets: Optional[Dict[str, Any]] = None,
 ) -> Dict:
 
     if compatibility_mode and user_agent:
@@ -64,6 +90,9 @@ def run_gepa_optimization(
             trace_storage_path=trace_storage_path,
             generation_config=generation_config,
             max_litellm_workers=generation_config.get('max_litellm_workers', 10),
+            reflection_instructions=reflection_instructions,
+            evaluation_config=evaluation_config,
+            optimization_targets=optimization_targets,
         )
     else:
         adapter = ATLASGEPAAdapter(
@@ -266,14 +295,23 @@ def main():
     wandb_config = config.get('wandb', {})
     generation_config = config.get('generation_config', {})
     generation_config['max_litellm_workers'] = config.get('max_litellm_workers', 10)
+    reflection_instructions = config.get('reflection_instructions') or {}
+    evaluation_config = config.get('evaluation') or {}
+    optimization_targets = config.get('optimization_targets') or {}
     
     print("Loading datasets...")
+    data_config = config.get('data', {})
+    column_config = data_config.get('columns')
+
     if args.trainset == "arc-atlas-rl":
         trainset = load_arc_atlas_dataset_from_hf()
         valset = None
+    elif args.trainset == "gsm8k-zh":
+        trainset = load_gsm8k_zh_dataset()
+        valset = None
     else:
-        trainset = load_dataset_from_jsonl(args.trainset)
-        valset = load_dataset_from_jsonl(args.valset) if args.valset else None
+        trainset = load_dataset_from_jsonl(args.trainset, column_config)
+        valset = load_dataset_from_jsonl(args.valset, column_config) if args.valset else None
 
     max_examples = config.get('max_examples')
     if max_examples:
@@ -311,7 +349,14 @@ def main():
         print("\n=== COMPATIBILITY MODE ===")
         print("Testing existing agent with ATLAS teaching")
 
-        if config.get('user_agent'):
+        agent_type = config.get('agent_type')
+        agent_config = config.get('agent_config', {})
+
+        if agent_type:
+            from wrappers import load_wrapper
+            user_agent = load_wrapper(agent_type, agent_config)
+            student_model = None
+        elif config.get('user_agent'):
             from wrappers import load_wrapper
             user_agent = load_wrapper(
                 config['user_agent']['type'],
@@ -319,7 +364,7 @@ def main():
             )
             student_model = None
         else:
-            raise ValueError("Compatibility mode requires user_agent configuration")
+            raise ValueError("Compatibility mode requires agent_type or user_agent configuration")
 
         if not seed_prompts:
             seed_prompts = {
@@ -361,6 +406,9 @@ def main():
         vllm_port=args.vllm_port,
         compatibility_mode=compatibility_mode,
         user_agent=user_agent,
+        reflection_instructions=reflection_instructions,
+        evaluation_config=evaluation_config,
+        optimization_targets=optimization_targets,
     )
     
     initial_score = result.val_aggregate_scores[0] if result.val_aggregate_scores else None
