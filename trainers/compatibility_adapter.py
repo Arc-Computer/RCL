@@ -18,6 +18,9 @@ class CompatibilityAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRoll
         trace_storage_path: str = "traces/compatibility_traces.jsonl",
         generation_config: Optional[Dict[str, Any]] = None,
         max_litellm_workers: int = 10,
+        reflection_instructions: Optional[Dict[str, str]] = None,
+        evaluation_config: Optional[Dict[str, Any]] = None,
+        optimization_targets: Optional[Dict[str, Any]] = None,
     ):
         self.teacher_model = teacher_model
         self.user_agent = user_agent
@@ -27,6 +30,9 @@ class CompatibilityAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRoll
         self.eval_count = 0
         self.generation_config = generation_config or {}
         self.max_litellm_workers = max_litellm_workers
+        self.reflection_instructions = reflection_instructions or {}
+        self.evaluation_config = evaluation_config or {}
+        self.optimization_targets = optimization_targets or {}
 
         if isinstance(teacher_model, str):
             import litellm
@@ -117,11 +123,15 @@ class CompatibilityAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRoll
         baseline_solutions = ATLASExtractionUtils.extract_solutions(baseline_responses)
         enhanced_solutions = ATLASExtractionUtils.extract_solutions(enhanced_responses)
 
-        class SimpleTokenizer:
-            def encode(self, text):
-                return text.split()
+        if self.evaluation_config:
+            from .configurable_evaluator import ConfigurableEvaluator
+            reward_calculator = ConfigurableEvaluator(self.evaluation_config)
+        else:
+            class SimpleTokenizer:
+                def encode(self, text):
+                    return text.split()
+            reward_calculator = OnlineTeachingReward(tokenizer=SimpleTokenizer())
 
-        reward_calculator = OnlineTeachingReward(tokenizer=SimpleTokenizer())
         rewards = reward_calculator(
             prompts=questions,
             completions=teacher_responses,
@@ -168,37 +178,54 @@ class CompatibilityAdapter(GEPAAdapter[ATLASDataInst, ATLASTrajectory, ATLASRoll
         reflective_data = {}
 
         for component in components_to_update:
+            target_config = self.optimization_targets.get(component, {})
+
+            if not target_config.get('optimize', True):
+                continue
+
             items = []
 
+            default_goals = {
+                'teacher_adaptive_template': "Improve teaching clarity and relevance based on student's errors.",
+                'student_diagnostic_template': "Better identify student misconceptions and knowledge gaps.",
+                'student_with_teaching_template': "Optimize how teaching guidance is integrated into responses."
+            }
+
+            goal = target_config.get('reflection_goal') or \
+                   self.reflection_instructions.get(component) or \
+                   default_goals.get(component, f"Optimize {component} for better performance")
+
             items.append({
-                "OPTIMIZATION_TARGET": "teacher_adaptive_template",
-                "GOAL": "Generate better teaching based on user agent's baseline response teacher needs to improve student's perfromance according to the task given to the student teacher's focus should be on how teach this student so that if can comlete the request or question without overthinking"
+                "OPTIMIZATION_TARGET": component,
+                "GOAL": goal
             })
 
-            for trajectory, score in zip(eval_batch.trajectories, eval_batch.scores):
-                baseline_solution = ATLASExtractionUtils.extract_solution(trajectory["student_baseline"])
-                enhanced_solution = ATLASExtractionUtils.extract_solution(trajectory["student_with_teaching"])
+            if eval_batch.trajectories:
+                for trajectory, score in zip(eval_batch.trajectories, eval_batch.scores):
+                    baseline_solution = ATLASExtractionUtils.extract_solution(trajectory["student_baseline"])
+                    enhanced_solution = ATLASExtractionUtils.extract_solution(trajectory["student_with_teaching"])
 
-                item = {
-                    "Inputs": {
-                        "question": trajectory["question"],
-                        "baseline_response": trajectory["student_baseline"],
-                    },
-                    "Teaching": {
-                        "teacher_response": trajectory["teacher_response"],
-                    },
-                    "Outputs": {
-                        "enhanced_solution": enhanced_solution,
-                        "baseline_solution": baseline_solution,
-                    },
-                    "Performance": {
-                        "improved": score > 0.5,
-                        "score": score,
-                        "ground_truth": trajectory["ground_truth"],
+                    item = {
+                        "Inputs": {
+                            "question": trajectory["question"],
+                            "baseline_response": trajectory["student_baseline"],
+                        },
+                        "Teaching": {
+                            "teacher_response": trajectory["teacher_response"],
+                        },
+                        "Outputs": {
+                            "enhanced_solution": enhanced_solution,
+                            "baseline_solution": baseline_solution,
+                        },
+                        "Performance": {
+                            "improved": score > 0.5,
+                            "score": score,
+                            "ground_truth": trajectory["ground_truth"],
+                        }
                     }
-                }
-                items.append(item)
+                    items.append(item)
 
-            reflective_data[component] = items
+            if len(items) > 1:
+                reflective_data[component] = items
 
         return reflective_data

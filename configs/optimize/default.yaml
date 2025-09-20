@@ -1,4 +1,4 @@
-trainset: arc-atlas-rl
+trainset: gsm8k-zh
 valset: null
 max_examples: 5
 
