@@ -9,7 +9,7 @@
 
 ## Rewards
 
-- `trainers/teacher_rewards.py::AdaptiveTeachingReward`: Asymmetric reward with degradation penalty and efficiency bonus. Configured via `configs/trainer/reward/adaptive_teaching.yaml`.
+- `trainers/teacher_rewards.py::AdaptiveTeachingReward`: Reward function with zero reward for degradation and efficiency bonus for improvements. Configured via `configs/trainer/reward/adaptive_teaching.yaml`.
 
 ## Data
 

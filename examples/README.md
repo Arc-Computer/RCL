@@ -13,27 +13,55 @@ The ATLAS inference pipeline integrates with existing agents through the followi
 3. **Generate Response**: Student generates improved response using guidance
 
 **Execution time**: Approximately 30 seconds per problem on T4 GPU
-**Performance gain**: 15.7% average accuracy improvement with 97% non-degradation rate
+**Design goal**: Improve performance while preventing degradation through adaptive teaching
+
+## Model Verification
+
+Verify ATLAS models are accessible before running notebooks:
+
+```bash
+# Using HuggingFace CLI (recommended)
+pip install -U "huggingface_hub[cli]"
+huggingface-cli download Arc-Intelligence/ATLAS-8B-Instruct --include "*.json" --exclude "*.safetensors"
+
+# Or using Python verification script
+python verify_atlas_access.py
+```
+
+All three models are publicly accessible on HuggingFace:
+- **Student**: `Qwen/Qwen3-4B-Instruct-2507` (4B parameters)
+- **Teacher Thinking**: `Arc-Intelligence/ATLAS-8B-Thinking` (8B parameters)
+- **Teacher Instruct**: `Arc-Intelligence/ATLAS-8B-Instruct` (8B parameters)
 
 ## Quick Test
 
-Quick validation of ATLAS functionality:
+Quick validation of ATLAS functionality (run from examples/ directory):
 
 ```python
 from utils.atlas_inference import ATLASInference, load_atlas_models
+import torch
 
-# Initialize models
-atlas, _ = load_atlas_models(
-    student_model_name="your-model-name",
-    teacher_thinking_name="Arc-Intelligence/ATLAS-8B-Thinking"
+# Initialize models with correct API
+student_model = "Qwen/Qwen3-4B-Instruct-2507"
+teacher_thinking = "Arc-Intelligence/ATLAS-8B-Thinking"
+teacher_instruct = "Arc-Intelligence/ATLAS-8B-Instruct"
+
+# Load models (returns tuple of reasoning and code atlas)
+reasoning_atlas, code_atlas = load_atlas_models(
+    student_model_name=student_model,
+    teacher_thinking_name=teacher_thinking,
+    teacher_instruct_name=teacher_instruct,
+    device_map="auto",
+    torch_dtype=torch.float16
 )
 
-# Run inference
+# Use reasoning_atlas for math problems
 problem = "What is 15% of 80?"
-result = atlas.run_full_protocol(problem)
+result = reasoning_atlas.run_full_protocol(problem)
 
 print(f"Baseline response: {result['baseline_response']}")
 print(f"Guided response: {result['guided_response']}")
+print(f"Strategy used: {result['learning']['strategy']}")
 ```
 
 ## Integration Guide
@@ -47,13 +75,24 @@ pip install transformers torch accelerate
 ```python
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from utils.atlas_inference import ATLASInference
+import torch
 
 # Load your existing agent
-your_agent = AutoModelForCausalLM.from_pretrained("your-model")
+your_agent = AutoModelForCausalLM.from_pretrained(
+    "your-model",
+    device_map="auto",
+    torch_dtype=torch.float16,
+    trust_remote_code=True
+)
 your_tokenizer = AutoTokenizer.from_pretrained("your-model")
 
 # Load ATLAS teacher
-teacher = AutoModelForCausalLM.from_pretrained("Arc-Intelligence/ATLAS-8B-Thinking")
+teacher = AutoModelForCausalLM.from_pretrained(
+    "Arc-Intelligence/ATLAS-8B-Thinking",
+    device_map="auto",
+    torch_dtype=torch.float16,
+    trust_remote_code=True
+)
 teacher_tokenizer = AutoTokenizer.from_pretrained("Arc-Intelligence/ATLAS-8B-Thinking")
 
 # Create ATLAS wrapper
@@ -111,8 +150,8 @@ def generate(prompt: str):
 ### Google Colab (Recommended)
 Click the badges below to run examples directly in Google Colab with GPU acceleration:
 
-[![Open Math Demo in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Arc-Intelligence/RCL/blob/main/examples/math_reasoning_demo.ipynb)
-[![Open Code Demo in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Arc-Intelligence/RCL/blob/main/examples/code_generation_demo.ipynb)
+[![Open Math Demo in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Arc-Computer/ATLAS/blob/main/examples/math_reasoning_demo.ipynb)
+[![Open Code Demo in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Arc-Computer/ATLAS/blob/main/examples/code_generation_demo.ipynb)
 
 **Hardware Requirements:**
 - GPU: T4 (free tier) or A100 (Colab Pro/Pro+) recommended
@@ -122,8 +161,8 @@ Click the badges below to run examples directly in Google Colab with GPU acceler
 ### Local Development
 ```bash
 # Clone repository
-git clone https://github.com/Arc-Intelligence/RCL.git
-cd RCL/examples
+git clone https://github.com/Arc-Computer/ATLAS.git
+cd ATLAS/examples
 
 # Launch Jupyter (dependencies installed automatically in notebooks)
 jupyter notebook

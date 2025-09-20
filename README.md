@@ -129,6 +129,7 @@ bash scripts/install_py312.sh
 
 ---
 
+
 ## Core Concepts
 
 <details open>
@@ -156,11 +157,12 @@ ATLAS uses a two-phase SFT→RL pipeline managed via [Hydra](https://hydra.cc/) 
 
 A full production training run on 8×H100 infrastructure looks like this:
 
+
 ```sh
 # Phase 1: SFT Warmup
 scripts/launch.sh 8 configs/run/teacher_sft.yaml output_dir=path/to/save/pre_rl_model
 
-# Phase 2: RL Training (2-3 days)
+# Phase 2: RL Training
 scripts/launch_with_server.sh 4 4 configs/run/teacher_rcl.yaml \
   model_name_or_path=path/of/saved/pre_rl_model
 ```
